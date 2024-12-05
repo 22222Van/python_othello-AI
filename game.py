@@ -56,6 +56,18 @@ class GameState():
     def __eq__(self, other) -> bool:
         return self is other
 
+    @lazy_property
+    def black_white_counts(self) -> Tuple[int, int]:
+        black_count = 0
+        white_count = 0
+        for i in range(BOARD_WIDTH):
+            for j in range(BOARD_WIDTH):
+                if self.grid[i][j] == 'B':
+                    black_count += 1
+                if self.grid[i][j] == 'W':
+                    white_count += 1
+        return black_count, white_count
+
     def get_ancestor(self, action: Optional[PointType]) -> 'GameState':
         if action not in self.__ancestors_cache:
             ancestor = self.clone()
@@ -93,6 +105,8 @@ class GameState():
         for row in disp_mat:
             return_str += ' '.join(row)
             return_str += '\n'
+
+        return_str += f"Turn: {'Black' if self.status == GameStatus.BLACK else 'White'}"
 
         return return_str
 
@@ -173,7 +187,7 @@ class GameState():
         """
         return 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_WIDTH
 
-    def is_placeable(self, x: int, y: int, color: ColorType) -> List[PointType]:
+    def is_placeable(self, x: int, y: int) -> List[PointType]:
         """
         Get the placeable neighbours of board[x][y]
         """
@@ -213,7 +227,7 @@ class GameState():
         placeable = []
         for i in range(BOARD_WIDTH):
             for j in range(BOARD_WIDTH):
-                i_j_placeable = self.is_placeable(i, j, color)
+                i_j_placeable = self.is_placeable(i, j)
                 for x, y in i_j_placeable:
                     if (x, y) not in placeable:
                         placeable.append((x, y))
@@ -245,7 +259,7 @@ class Game():
                 'B' if self.game_state.status == GameStatus.BLACK else 'W'
             )
             legal_actions = self.game_state.legal_actions
-            # print(self.game_state)
+            print(f'{self.game_state}\n')
             if self.use_graphic:
                 self.game_state.draw_board()
             if legal_actions:
@@ -263,14 +277,7 @@ class Game():
                     no_legal_actions_flag = True
 
         # 游戏结束，结算
-        black_count = 0
-        white_count = 0
-        for i in range(BOARD_WIDTH):
-            for j in range(BOARD_WIDTH):
-                if self.game_state.grid[i][j] == 'B':
-                    black_count += 1
-                if self.game_state.grid[i][j] == 'W':
-                    white_count += 1
+        black_count, white_count = self.game_state.black_white_counts
 
         result_str = ""
         if (black_count > white_count):
