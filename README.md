@@ -1,5 +1,11 @@
 # README
 
+# 注意事项：
+
+改代码之前先拉取（pull）代码！！！
+改代码之前先拉取（pull）代码！！！
+改代码之前先拉取（pull）代码！！！
+
 ## Usage
 
 Run the program using:
@@ -11,3 +17,6 @@ Optional arguments:
 
 - Use `--no-graphics` to disable the graphical user interface.
 - Use `--seed <seed>` to set a specific random seed for reproducibility.
+
+
+

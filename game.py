@@ -28,7 +28,7 @@ class Game():
         while self.game_state.running:
             if self.use_graphic:
                 self.game_state.draw_board()
-            print(f'{self.game_state}\n')  # debug
+            print(f'\n{self.game_state}')  # debug
 
             color: ColorType = (
                 'B' if self.game_state.status == GameStatus.BLACK else 'W'
@@ -40,9 +40,11 @@ class Game():
                     self.black_agent.get_action(self.game_state) if color == 'B'
                     else self.white_agent.get_action(self.game_state)
                 )
+                print(action)
                 self.game_state = self.game_state.get_successor(action)
             else:
                 # 空过的情况
+                print("No move, pass")
                 self.game_state = self.game_state.get_successor(None)
 
         # 游戏结束，结算
