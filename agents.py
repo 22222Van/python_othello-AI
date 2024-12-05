@@ -53,8 +53,8 @@ class Limiter(BaseAgent):
         # game_state.legal_actions 保证一定非空（大概，否则就是 game.py 有 bug）
         select_action = game_state.legal_actions[0]
         for action in game_state.legal_actions:
-            ancestor_state = game_state.get_ancestor(action)
-            choices_number = len(ancestor_state.legal_actions)
+            successor_state = game_state.get_successor(action)
+            choices_number = len(successor_state.legal_actions)
             if choices_number < min_choices_number:
                 select_action = action
                 min_choices_number = choices_number

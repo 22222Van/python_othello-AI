@@ -33,7 +33,7 @@ class GameState():
             self._status = copy.deepcopy(other._status)
 
         # deepcopy的时候不能拷贝cache！
-        self.__ancestors_cache = {}
+        self.__successors_cache = {}
 
     # @property起保护作用，能阻止对grid，status赋值的行为
 
@@ -112,7 +112,7 @@ class GameState():
         color = 'B' if self.status == GameStatus.BLACK else 'W'
         ui.draw_board(self.grid, color, self.legal_actions)
 
-    # legal_actions、get_ancestor、翻转棋子算法相关
+    # legal_actions、get_successor、翻转棋子算法相关
 
     @staticmethod
     def is_in_board(x: int, y: int) -> bool:
@@ -219,50 +219,50 @@ class GameState():
                     # flips
                     self._grid[pos[0]][pos[1]] = color
 
-    def get_ancestor(self, action: Optional[PointType]) -> 'GameState':
+    def get_successor(self, action: Optional[PointType]) -> 'GameState':
         '''
-            When `action` is `None`, the obtained ancestor will only swap the
+            When `action` is `None`, the obtained successor will only swap the
             current player without making any changes to the board.
         '''
-        def get_ancestor_helper() -> 'GameState':
-            ancestor = self.clone()
+        def get_successor_helper() -> 'GameState':
+            successor = self.clone()
             color = 'B' if self.status == GameStatus.BLACK else 'W'
 
             if action is not None:
                 x, y = action
-                ancestor._grid[x][y] = color
+                successor._grid[x][y] = color
                 for i in range(1, 9):
-                    ancestor._flip(i, (x, y), color)
+                    successor._flip(i, (x, y), color)
 
-            # 不管 ancestor 的棋局是否已经结束，因为要获得 ancestor.legal_actions，
+            # 不管 successor 的棋局是否已经结束，因为要获得 successor.legal_actions，
             # 所以必须暂时先给它赋一个 WHITE 或 BLACK 的值
             if color == 'B':
-                ancestor._status = GameStatus.WHITE
+                successor._status = GameStatus.WHITE
             else:
-                ancestor._status = GameStatus.BLACK
+                successor._status = GameStatus.BLACK
 
-            if len(ancestor.legal_actions) == 0:
-                grand_ancestor = ancestor.clone()
-                grand_ancestor._status = self.status
-                if len(grand_ancestor.legal_actions) == 0:
+            if len(successor.legal_actions) == 0:
+                grand_successor = successor.clone()
+                grand_successor._status = self.status
+                if len(grand_successor.legal_actions) == 0:
                     # 连续两个都没有 legal_actions，游戏已经结束
-                    black_counts, white_counts = ancestor.black_white_counts
+                    black_counts, white_counts = successor.black_white_counts
                     if black_counts > white_counts:
-                        ancestor._status = GameStatus.BLACK_WIN
+                        successor._status = GameStatus.BLACK_WIN
                     elif black_counts < white_counts:
-                        ancestor._status = GameStatus.WHITE_WIN
+                        successor._status = GameStatus.WHITE_WIN
                     else:
-                        ancestor._status = GameStatus.DRAW
-                    return ancestor
+                        successor._status = GameStatus.DRAW
+                    return successor
                 else:
-                    ancestor.__ancestors_cache[None] = grand_ancestor
+                    successor.__successors_cache[None] = grand_successor
 
-            return ancestor
+            return successor
 
-        if action not in self.__ancestors_cache:
-            self.__ancestors_cache[action] = get_ancestor_helper()
+        if action not in self.__successors_cache:
+            self.__successors_cache[action] = get_successor_helper()
 
-        return self.__ancestors_cache[action]
+        return self.__successors_cache[action]
 
     @lazy_property
     def legal_actions(self) -> List[PointType]:

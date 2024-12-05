@@ -40,10 +40,10 @@ class Game():
                     self.black_agent.get_action(self.game_state) if color == 'B'
                     else self.white_agent.get_action(self.game_state)
                 )
-                self.game_state = self.game_state.get_ancestor(action)
+                self.game_state = self.game_state.get_successor(action)
             else:
                 # 空过的情况
-                self.game_state = self.game_state.get_ancestor(None)
+                self.game_state = self.game_state.get_successor(None)
 
         # 游戏结束，结算
         black_count, white_count = self.game_state.black_white_counts

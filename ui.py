@@ -75,6 +75,7 @@ def draw_board(grid, color, legal_actions):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+                # running=0
         clock.tick(FPS)
         running -= 1
 
