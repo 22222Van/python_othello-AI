@@ -1,6 +1,6 @@
 from typing import (
     List, Tuple, Union, Literal, Optional, Type, TypeVar, Generic, Callable,
-    NoReturn, Any, overload
+    NoReturn, Any, overload, TYPE_CHECKING
 )
 import os
 
@@ -13,9 +13,6 @@ PointType = Tuple[int, int]
 BOARD_WIDTH = 8
 
 T = TypeVar('T')
-
-# 这个装饰器目前代码里没有用，但是优化 GameState 时可能需要使用，先复制过来了
-# By the way，优化 GameState 也可能会用到 functools.lru_cache
 
 
 class lazy_property(Generic[T]):
