@@ -9,7 +9,6 @@ from utils import *
 class GameStatus(Enum):
     BLACK = 1
     WHITE = 2
-    # 下面三个目前代码里永远不会出现，但是之后可能会有用
     BLACK_WIN = 3
     WHITE_WIN = 4
     DRAW = 5
@@ -17,6 +16,9 @@ class GameStatus(Enum):
 
 class GameState():
     def __init__(self, other: Optional['GameState'] = None):
+        """
+            Copy construct if `other` is another GameState object.
+        """
         super().__init__()
 
         if other is None:
@@ -32,7 +34,7 @@ class GameState():
             self._grid = copy.deepcopy(other._grid)
             self._status = copy.deepcopy(other._status)
 
-        # deepcopy的时候不拷贝cache
+        # deepcopy的时候不能拷贝cache！
         self.__ancestors_cache = {}
 
     # @property起保护作用，能阻止对grid，status赋值的行为
@@ -45,6 +47,8 @@ class GameState():
     def status(self) -> GameStatus:
         return self._status
 
+    # 复制GameState相关
+
     def __deepcopy__(self, memo: dict[int, Any]) -> 'GameState':
         if id(self) in memo:
             return memo[id(self)]
@@ -53,8 +57,13 @@ class GameState():
     def clone(self) -> 'GameState':
         return self.__deepcopy__({})
 
-    def __eq__(self, other) -> bool:
-        return self is other
+    # 棋局数据相关
+
+    @property
+    def running(self) -> bool:
+        return (
+            self.status == GameStatus.BLACK or self.status == GameStatus.WHITE
+        )
 
     @lazy_property
     def black_white_counts(self) -> Tuple[int, int]:
@@ -68,25 +77,7 @@ class GameState():
                     white_count += 1
         return black_count, white_count
 
-    def get_ancestor(self, action: Optional[PointType]) -> 'GameState':
-        if action not in self.__ancestors_cache:
-            ancestor = self.clone()
-            color = 'B' if self.status == GameStatus.BLACK else 'W'
-
-            if action is not None:
-                x, y = action
-                ancestor._grid[x][y] = color
-                for i in range(1, 9):
-                    ancestor._flip(i, (x, y), color)
-
-            if color == 'B':
-                ancestor._status = GameStatus.WHITE
-            else:
-                ancestor._status = GameStatus.BLACK
-
-            self.__ancestors_cache[action] = ancestor
-
-        return self.__ancestors_cache[action]
+    # 展示棋局相关
 
     def __str__(self) -> str:
         return_str = ""
@@ -106,7 +97,16 @@ class GameState():
             return_str += ' '.join(row)
             return_str += '\n'
 
-        return_str += f"Turn: {'Black' if self.status == GameStatus.BLACK else 'White'}"
+        if self.status == GameStatus.BLACK:
+            return_str += 'Turn: Black'
+        elif self.status == GameStatus.WHITE:
+            return_str += 'Turn: White'
+        elif self.status == GameStatus.BLACK_WIN:
+            return_str += 'Black Wins!'
+        elif self.status == GameStatus.WHITE_WIN:
+            return_str += 'White Wins!'
+        elif self.status == GameStatus.DRAW:
+            return_str += 'Draw!'
 
         return return_str
 
@@ -114,8 +114,47 @@ class GameState():
         color = 'B' if self.status == GameStatus.BLACK else 'W'
         ui.draw_board(self.grid, color, self.legal_actions)
 
-    def running(self) -> bool:
-        return self.status == GameStatus.BLACK or self.status == GameStatus.WHITE
+    # legal_actions、get_ancestor、翻转棋子算法相关
+
+    @staticmethod
+    def is_in_board(x: int, y: int) -> bool:
+        """
+        Check whether `0<=x<BOARD_WIDTH and 0<=y<BOARD_WIDTH`
+        """
+        return 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_WIDTH
+
+    def is_placeable(self, x: int, y: int) -> List[PointType]:
+        """
+        Get the placeable neighbours of board[x][y]
+        """
+        color = 'B' if self.status == GameStatus.BLACK else 'W'
+
+        opponent_color = 'W'
+        if color == 'W':
+            opponent_color = 'B'
+
+        output = []
+        if self._grid[x][y] != opponent_color:
+            return output
+
+        for i in [1, 0, -1]:
+            for j in [1, 0, -1]:
+                if not ((i == 0) and (j == 0)) and self.is_in_board(x+i, y+j):
+                    legal = False
+                    if self._grid[x+i][y+j] == '|':
+                        temp_x = x-i
+                        temp_y = y-j
+                        while self.is_in_board(temp_x, temp_y):
+                            if self._grid[temp_x][temp_y] == color:
+                                legal = True
+                                break
+                            if self._grid[temp_x][temp_y] != opponent_color:
+                                break
+                            temp_y -= j
+                            temp_x -= i
+                    if legal:
+                        output.append((x+i, y+j))
+        return output
 
     def _flip(self, direction, position, color):
         """ Flips (capturates) the pieces of the given color in the given direction
@@ -180,50 +219,46 @@ class GameState():
                     # flips
                     self._grid[pos[0]][pos[1]] = color
 
-    @staticmethod
-    def is_in_board(x: int, y: int) -> bool:
-        """
-        Check whether `0<=x<BOARD_WIDTH and 0<=y<BOARD_WIDTH`
-        """
-        return 0 <= x < BOARD_WIDTH and 0 <= y < BOARD_WIDTH
+    def get_ancestor(self, action: Optional[PointType]) -> 'GameState':
+        def get_ancestor_helper() -> 'GameState':
+            ancestor = self.clone()
+            color = 'B' if self.status == GameStatus.BLACK else 'W'
 
-    def is_placeable(self, x: int, y: int) -> List[PointType]:
-        """
-        Get the placeable neighbours of board[x][y]
-        """
-        color = 'B' if self.status == GameStatus.BLACK else 'W'
+            if action is not None:
+                x, y = action
+                ancestor._grid[x][y] = color
+                for i in range(1, 9):
+                    ancestor._flip(i, (x, y), color)
 
-        opponent_color = 'W'
-        if color == 'W':
-            opponent_color = 'B'
+            if color == 'B':
+                ancestor._status = GameStatus.WHITE
+            else:
+                ancestor._status = GameStatus.BLACK
 
-        output = []
-        if self._grid[x][y] != opponent_color:
-            return output
+            if len(ancestor.legal_actions) == 0:
+                grand_ancestor = ancestor.clone()
+                grand_ancestor._status = self.status
+                if len(grand_ancestor.legal_actions) == 0:
+                    black_counts, white_counts = ancestor.black_white_counts
+                    if black_counts > white_counts:
+                        ancestor._status = GameStatus.BLACK_WIN
+                    elif black_counts < white_counts:
+                        ancestor._status = GameStatus.WHITE_WIN
+                    else:
+                        ancestor._status = GameStatus.DRAW
+                    return ancestor
+                else:
+                    ancestor.__ancestors_cache[None] = grand_ancestor
 
-        for i in [1, 0, -1]:
-            for j in [1, 0, -1]:
-                if not ((i == 0) and (j == 0)) and self.is_in_board(x+i, y+j):
-                    legal = False
-                    if self._grid[x+i][y+j] == '|':
-                        temp_x = x-i
-                        temp_y = y-j
-                        while self.is_in_board(temp_x, temp_y):
-                            if self._grid[temp_x][temp_y] == color:
-                                legal = True
-                                break
-                            if self._grid[temp_x][temp_y] != opponent_color:
-                                break
-                            temp_y -= j
-                            temp_x -= i
-                    if legal:
-                        output.append((x+i, y+j))
-        return output
+            return ancestor
+
+        if action not in self.__ancestors_cache:
+            self.__ancestors_cache[action] = get_ancestor_helper()
+
+        return self.__ancestors_cache[action]
 
     @lazy_property
     def legal_actions(self) -> List[PointType]:
-        color = 'B' if self.status == GameStatus.BLACK else 'W'
-
         placeable = []
         for i in range(BOARD_WIDTH):
             for j in range(BOARD_WIDTH):
@@ -253,38 +288,28 @@ class Game():
             ui.init_window()
 
     def start(self):
-        no_legal_actions_flag = False
-        while self.game_state.running():
+        while self.game_state.running:
+            if self.use_graphic:
+                self.game_state.draw_board()
+            print(f'{self.game_state}\n')  # debug
+
             color: ColorType = (
                 'B' if self.game_state.status == GameStatus.BLACK else 'W'
             )
             legal_actions = self.game_state.legal_actions
-            print(f'{self.game_state}\n')
-            if self.use_graphic:
-                self.game_state.draw_board()
-            if legal_actions:
-                no_legal_actions_flag = False
+
+            if len(legal_actions) != 0:
                 action = (
                     self.black_agent.get_action(legal_actions) if color == 'B'
                     else self.white_agent.get_action(legal_actions)
                 )
                 self.game_state = self.game_state.get_ancestor(action)
             else:
-                if no_legal_actions_flag:
-                    break
-                else:
-                    self.game_state = self.game_state.get_ancestor(None)
-                    no_legal_actions_flag = True
+                # 空过的情况
+                self.game_state = self.game_state.get_ancestor(None)
 
         # 游戏结束，结算
         black_count, white_count = self.game_state.black_white_counts
 
-        result_str = ""
-        if (black_count > white_count):
-            result_str = "Black Wins!"
-        elif (black_count == white_count):
-            result_str = "Tie!"
-        else:
-            result_str = "White Wins!"
-        print(result_str)
+        print(f'{self.game_state}')
         print(f'Black {black_count}-{white_count} White')
