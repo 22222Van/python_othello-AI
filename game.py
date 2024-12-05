@@ -1,4 +1,4 @@
-from functools import lru_cache
+import copy
 from enum import Enum
 from agents import BaseAgent
 import ui
@@ -16,18 +16,24 @@ class GameStatus(Enum):
 
 
 class GameState():
-    def __init__(self):
+    def __init__(self, other: Optional['GameState'] = None):
         super().__init__()
 
-        str_board = [
-            ['|' for _ in range(BOARD_WIDTH)]
-            for _ in range(BOARD_WIDTH)
-        ]
-        str_board[3][3], str_board[4][4] = 'W', 'W'
-        str_board[3][4], str_board[4][3] = 'B', 'B'
-        self._grid: GridType = str_board
+        if other is None:
+            str_board = [
+                ['|' for _ in range(BOARD_WIDTH)]
+                for _ in range(BOARD_WIDTH)
+            ]
+            str_board[3][3], str_board[4][4] = 'W', 'W'
+            str_board[3][4], str_board[4][3] = 'B', 'B'
+            self._grid: GridType = str_board
+            self._status: GameStatus = GameStatus.BLACK
+        else:
+            self._grid = copy.deepcopy(other._grid)
+            self._status = copy.deepcopy(other._status)
 
-        self._status: GameStatus = GameStatus.BLACK
+        # deepcopy的时候不拷贝cache
+        self.__ancestors_cache = {}
 
     # @property起保护作用，能阻止对grid，status赋值的行为
 
@@ -39,7 +45,40 @@ class GameState():
     def status(self) -> GameStatus:
         return self._status
 
-    def print_grid(self, legal_actions) -> None:
+    def __deepcopy__(self, memo: dict[int, Any]) -> 'GameState':
+        if id(self) in memo:
+            return memo[id(self)]
+        return GameState(self)
+
+    def clone(self) -> 'GameState':
+        return self.__deepcopy__({})
+
+    def __eq__(self, other) -> bool:
+        return self is other
+
+    def get_ancestor(self, action: Optional[PointType]) -> 'GameState':
+        if action not in self.__ancestors_cache:
+            ancestor = self.clone()
+            color = 'B' if self.status == GameStatus.BLACK else 'W'
+
+            if action is not None:
+                x, y = action
+                ancestor._grid[x][y] = color
+                for i in range(1, 9):
+                    ancestor._flip(i, (x, y), color)
+
+            if color == 'B':
+                ancestor._status = GameStatus.WHITE
+            else:
+                ancestor._status = GameStatus.BLACK
+
+            self.__ancestors_cache[action] = ancestor
+
+        return self.__ancestors_cache[action]
+
+    def __str__(self) -> str:
+        return_str = ""
+
         disp_mat = [[' ' for _ in range(BOARD_WIDTH+1)]
                     for _ in range(BOARD_WIDTH+1)]
         for i in range(1, BOARD_WIDTH+1):
@@ -47,34 +86,24 @@ class GameState():
             disp_mat[i][0] = str(i-1)
         for j in range(1, BOARD_WIDTH+1):
             for k in range(1, BOARD_WIDTH+1):
-                if (j-1, k-1) in legal_actions:
+                if (j-1, k-1) in self.legal_actions:
                     disp_mat[j][k] = '*'
                 else:
-                    disp_mat[j][k] = self._grid[j-1][k-1]
+                    disp_mat[j][k] = self.grid[j-1][k-1]
         for row in disp_mat:
-            print(' '.join(row))
+            return_str += ' '.join(row)
+            return_str += '\n'
 
-    def draw_board(self, legal_actions) -> None:
-        color = 'B' if self._status == GameStatus.BLACK else 'W'
-        ui.draw_board(self._grid, color, legal_actions)
+        return return_str
+
+    def draw_board(self) -> None:
+        color = 'B' if self.status == GameStatus.BLACK else 'W'
+        ui.draw_board(self.grid, color, self.legal_actions)
 
     def running(self) -> bool:
-        return self._status == GameStatus.BLACK or self._status == GameStatus.WHITE
+        return self.status == GameStatus.BLACK or self.status == GameStatus.WHITE
 
-    def update(self, action: Optional[PointType], color: ColorType) -> None:
-        # print(action, color)
-        if action is not None:
-            x, y = action
-            self._grid[x][y] = color
-            for i in range(1, 9):
-                self.flip(i, (x, y), color)
-
-        if color == 'B':
-            self._status = GameStatus.WHITE
-        else:
-            self._status = GameStatus.BLACK
-
-    def flip(self, direction, position, color):
+    def _flip(self, direction, position, color):
         """ Flips (capturates) the pieces of the given color in the given direction
         (1=North,2=Northeast...) from position. """
         if direction == 1:
@@ -148,6 +177,8 @@ class GameState():
         """
         Get the placeable neighbours of board[x][y]
         """
+        color = 'B' if self.status == GameStatus.BLACK else 'W'
+
         opponent_color = 'W'
         if color == 'W':
             opponent_color = 'B'
@@ -175,7 +206,10 @@ class GameState():
                         output.append((x+i, y+j))
         return output
 
-    def get_legal_actions(self, color: ColorType) -> List[PointType]:
+    @lazy_property
+    def legal_actions(self) -> List[PointType]:
+        color = 'B' if self.status == GameStatus.BLACK else 'W'
+
         placeable = []
         for i in range(BOARD_WIDTH):
             for j in range(BOARD_WIDTH):
@@ -210,21 +244,22 @@ class Game():
             color: ColorType = (
                 'B' if self.game_state.status == GameStatus.BLACK else 'W'
             )
-            legal_actions = self.game_state.get_legal_actions(color)
+            legal_actions = self.game_state.legal_actions
+            # print(self.game_state)
             if self.use_graphic:
-                self.game_state.draw_board(legal_actions)
+                self.game_state.draw_board()
             if legal_actions:
                 no_legal_actions_flag = False
                 action = (
                     self.black_agent.get_action(legal_actions) if color == 'B'
                     else self.white_agent.get_action(legal_actions)
                 )
-                self.game_state.update(action, color)
+                self.game_state = self.game_state.get_ancestor(action)
             else:
                 if no_legal_actions_flag:
                     break
                 else:
-                    self.game_state.update(None, color)
+                    self.game_state = self.game_state.get_ancestor(None)
                     no_legal_actions_flag = True
 
         # 游戏结束，结算
