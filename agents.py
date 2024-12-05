@@ -1,4 +1,5 @@
 import random
+from game_state import GameState
 
 from abc import ABC, abstractmethod
 from utils import *
@@ -20,26 +21,24 @@ class BaseAgent(ABC):
         cls.registry[cli_name.lower()] = cls
 
     @abstractmethod
-    def get_action(self, legal_actions: List[PointType]) -> PointType:
+    def get_action(self, game_state: GameState) -> PointType:
         ...
 
 
 class Player(BaseAgent):
-    def get_action(self, legal_actions):
-        return ui.get_player_action(legal_actions)
+    def get_action(self, game_state):
+        return ui.get_player_action(game_state.legal_actions)
 
 
 # class FoolishAgent(BaseAgent):
-#     def get_action(self, legal_actions):
-#         assert legal_actions
-#         return legal_actions[0]
+#     def get_action(self, game_state):
+#         return game_state.legal_actions[0]
 
 
 class RandomAgent(BaseAgent):
-    def get_action(self, legal_actions):
-        assert legal_actions
-        # legal_actions 可以变成一个 set 以加快访存速度
-        legal_actions = list(set(legal_actions))
-        return random.choice(legal_actions)
+    def get_action(self, game_state):
+        return random.choice(game_state.legal_actions)
 
-# class 
+
+class LimiterAgent(BaseAgent):
+    pass
