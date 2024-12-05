@@ -1,8 +1,6 @@
 from agents import BaseAgent
 from game_state import GameState, GameStatus
 
-import copy
-from enum import Enum
 import ui
 
 from utils import *
