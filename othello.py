@@ -1,6 +1,7 @@
 import argparse
 from agents import BaseAgent
 from game import Game
+from utils import *
 
 
 def seed_everything(seed: int) -> None:
@@ -15,8 +16,8 @@ def seed_everything(seed: int) -> None:
     # torch.backends.cudnn.deterministic = True
 
 
-def get_agent_from_cli_name(cli_string: str) -> BaseAgent:
-    return BaseAgent.registry[cli_string.lower()]()
+def get_agent_from_cli_name(cli_string: str, color: ColorType) -> BaseAgent:
+    return BaseAgent.registry[cli_string.lower()](color)
 
 
 if __name__ == '__main__':
@@ -42,8 +43,8 @@ Add copyright information here.
     if seed is not None:
         seed_everything(seed)
 
-    agent1 = get_agent_from_cli_name(args.agent1)
-    agent2 = get_agent_from_cli_name(args.agent2)
+    agent1 = get_agent_from_cli_name(args.agent1, 'B')
+    agent2 = get_agent_from_cli_name(args.agent2, 'W')
     game = Game(agent1, agent2, not args.no_graphics)
 
     game.start()
