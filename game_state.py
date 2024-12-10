@@ -274,13 +274,3 @@ class GameState():
                     if (x, y) not in placeable:
                         placeable.append((x, y))
         return placeable
-
-    def B_naive_evaluation_func(self):
-        """
-        Black's Naive evaluation that just counts the number of pieces directly
-        """
-
-    def W_naive_evaluation_func(self):
-        """
-        White's Naive evaluation that just counts the number of pieces directly
-        """

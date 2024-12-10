@@ -95,3 +95,162 @@ class GreedyAgent(BaseAgent):
                 elif (count_act[0][1] == max_num):
                     max_action_list.append(count_act[1])
         return random.choice(max_action_list)
+
+
+class MinimaxAgent(BaseAgent): #Debuging
+    def __init__(self, color):
+        super().__init__(color)
+        self.depth = 1  # Fix This
+
+
+    def get_action(self, game_state):
+        superior_action=None
+        max_value=None
+        actionList=game_state.legal_actions
+
+        for action in actionList:
+            
+            temp=self.naive_evaluation_func(game_state,game_state.status,0)
+
+            if max_value==None and superior_action==None:
+                max_value=temp
+                superior_action=action
+            if temp>max_value:
+                max_value=temp
+                superior_action=action
+
+        return superior_action
+
+    def naive_evaluation_func(self, game_state: GameState,color, depth):
+        """
+        Black's Naive evaluation that just counts the number of pieces directly
+        """
+
+        if (len(game_state.legal_actions) == 0):
+            return (game_state.black_white_counts)[0] if color==GameStatus.BLACK else (game_state.black_white_counts)[1]
+
+        if game_state.running == False:
+            return (game_state.black_white_counts)[0] if color==GameStatus.BLACK else (game_state.black_white_counts)[1]
+
+        evalutaion = 0
+
+        if color==GameStatus.BLACK:
+            if game_state.status == GameStatus.BLACK:
+                new_depth = depth+1
+                if new_depth == self.depth:
+                    return (game_state.black_white_counts)[0]
+                evalutaion=self.max_B_value(game_state,color,depth)
+            else:
+                evalutaion = self.min_B_value(game_state,color, depth)
+        else:
+            if game_state.status == GameStatus.WHITE:
+                new_depth = depth+1
+                if new_depth == self.depth:
+                    return (game_state.black_white_counts)[1]
+                evalutaion=self.max_W_value(game_state,color,depth)
+            else:
+                evalutaion = self.min_W_value(game_state,color, depth)
+        return evalutaion
+
+    def min_B_value(self, game_state: GameState,color, depth):
+        """
+        returns the minimum value of Black Pieces
+        """
+        value = None
+        actionList = game_state.legal_actions
+        if game_state.running == False:
+            return (game_state.black_white_counts)[0]
+        if len(actionList) == 0:
+            return self.naive_evaluation_func(game_state.get_successor(None),color, depth)
+
+        for action in actionList:
+            temp = self.naive_evaluation_func(
+                game_state.get_successor(action),color, depth)
+            if value == None:
+                value = temp
+            if temp < value:
+                value = temp
+
+        return value
+
+    def max_B_value(self, game_state: GameState,color, depth):
+        """
+        returns the minimum value of Black Pieces
+        """
+        value = None
+        actionList = game_state.legal_actions
+        if game_state.running == False:
+            return (game_state.black_white_counts)[0]
+        if len(actionList) == 0:
+            return self.naive_evaluation_func(game_state.get_successor(None),color, depth)
+
+        for action in actionList:
+            temp = self.naive_evaluation_func(
+                game_state.get_successor(action),color, depth)
+            if value == None:
+                value = temp
+            if temp > value:
+                value = temp
+        return value
+
+    # def naive_W_evaluation_func(self, game_state:GameState, depth):
+    #     """
+    #     White's Naive evaluation that just counts the number of pieces directly
+    #     """
+    #     if (len(game_state.legal_actions) == 0):
+    #         return (game_state.black_white_counts())[1]
+
+    #     if game_state.running == False:
+    #         return (game_state.black_white_counts())[1]
+
+    #     evalutaion = 0
+
+    #     if game_state.status() == GameStatus.WHITE:
+    #         new_depth = depth+1
+    #         if new_depth == self.depth:
+    #             return (self.black_white_counts())[1]
+    #         evalutaion=self.max_W_value(game_state,depth)
+    #     else:
+    #         evalutaion = self.min_W_value(game_state, depth)
+    #     return evalutaion
+
+    def min_W_value(self, game_state: GameState,color, depth):
+        """
+        returns the minimum value of White Pieces
+        """
+        value = None
+        actionList = game_state.legal_actions
+        if game_state.running == False:
+            return (game_state.black_white_counts)[1]
+        if len(actionList) == 0:
+            return self.naive_evaluation_func(game_state.get_successor(None),color, depth)
+
+        for action in actionList:
+            temp = self.naive_evaluation_func(
+                game_state.get_successor(action),color, depth)
+            if value == None:
+                value = temp
+            if temp < value:
+                value = temp
+
+        return value
+
+    def max_W_value(self, game_state: GameState,color, depth):
+        """
+        returns the minimum value of White Pieces
+        """
+        value = None
+        actionList = game_state.legal_actions
+        if game_state.running == False:
+            return (game_state.black_white_counts)[1]
+        if len(actionList) == 0:
+            return self.naive_evaluation_func(game_state.get_successor(None),color, depth)
+        
+        for action in actionList:
+            temp = self.naive_evaluation_func(
+                game_state.get_successor(action),color, depth)
+            if value == None:
+                value = temp
+            if temp > value:
+                value = temp
+        return value
