@@ -1,4 +1,3 @@
-import pygame
 import sys
 from utils import *
 
@@ -10,14 +9,14 @@ BLACK = (0, 0, 0)
 BACKGROUND_COLOR = (249, 214, 91)
 FPS = 24
 
-window: Optional[pygame.Surface] = None
-clock: Optional[pygame.time.Clock] = None
-
-print()
+window: Optional['pygame.Surface'] = None
+clock: Optional['pygame.time.Clock'] = None
 
 
 def init_window() -> None:
-    global window, clock
+    global pygame, window, clock
+
+    import pygame
     pygame.init()
 
     window = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))

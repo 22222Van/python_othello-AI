@@ -16,8 +16,20 @@ def seed_everything(seed: int) -> None:
     # torch.backends.cudnn.deterministic = True
 
 
-def get_agent_from_cli_name(cli_string: str, color: ColorType) -> BaseAgent:
-    return BaseAgent.registry[cli_string.lower()](color)
+def get_agent_from_cli_name(cli_list: list[str], color: ColorType) -> BaseAgent:
+    agent_name = cli_list[0]
+    args = cli_list[1:]
+    kwargs = {}
+    for arg in args:
+        k, v = arg.split("=")
+        if k == 'depth':
+            v = int(v)
+        elif k == 'heuristic':
+            raise NotImplementedError("Heuristic is not implemented.")
+        else:
+            raise ValueError(f"Unknown arg {k}={v}.")
+        kwargs[k] = v
+    return BaseAgent.registry[agent_name.lower()](color, **kwargs)
 
 
 if __name__ == '__main__':
@@ -29,10 +41,10 @@ Add copyright information here.
 '''
     )
     parser.add_argument(
-        'agent1', nargs="?", type=str, default='Player'
+        '--agent1', '-1', nargs="+", type=str, default=['Player']
     )
     parser.add_argument(
-        'agent2', nargs="?", type=str, default='RandomAgent'
+        '--agent2', '-2', nargs="+", type=str, default=['RandomAgent']
     )
     parser.add_argument('--no-graphics', action='store_true')
     parser.add_argument('--seed', default=None, type=int)
