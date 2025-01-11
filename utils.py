@@ -13,7 +13,7 @@ PointType = Tuple[int, int]
 BOARD_WIDTH = 8
 
 T = TypeVar('T')
-
+INF = float('inf')
 
 class lazy_property(Generic[T]):
     """
