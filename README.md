@@ -17,5 +17,6 @@ Here, `<agent1>` and `<agent2>` can be `Player`, `RandomAgent`, or any other non
 
 Optional arguments:
 
-- Use `--no-graphics` to disable the graphical user interface.
+- Use `--no-graphics` (`-q`) to disable the graphical user interface.
 - Use `--seed <seed>` to set a specific random seed for reproducibility.
+- Use `--total-games <number>` (`-N`) to play multiple rounds.
