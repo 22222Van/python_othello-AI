@@ -49,7 +49,7 @@ Add copyright information here.
     )
     parser.add_argument('--no-graphics', '-q', action='store_true')
     parser.add_argument('--debug', action='store_true')
-    parser.add_argument('--total-games', '-N', type=int, default=1)
+    parser.add_argument('--total-games', '-n', type=int, default=1)
     parser.add_argument('--seed', default=None, type=int)
 
     args = parser.parse_args()

@@ -19,4 +19,4 @@ Optional arguments:
 
 - Use `--no-graphics` (`-q`) to disable the graphical user interface.
 - Use `--seed <seed>` to set a specific random seed for reproducibility.
-- Use `--total-games <number>` (`-N`) to play multiple rounds.
+- Use `--total-games <number>` (`-n`) to play multiple rounds.
