@@ -1,6 +1,6 @@
 import random
 from game_state import GameState
-from game_state import GameStatus
+from heuristics import BaseHeuristic
 
 from abc import ABC, abstractmethod
 from utils import *
@@ -67,33 +67,34 @@ class Limiter(BaseAgent):
         return select_action
 
 
-class GreedyAgent(BaseAgent):
+class InformedAgent(BaseAgent):
     """
-        An evil agent who uses greedy search to maximize the number of
-        it's color's pieces.
-        When more than one action lead to the maximization,
-        randomly choose one.
+        Abstract base class for all agents which have an heuristic function.
+    """
+
+    def __init__(self, color: ColorType, heuristic: str) -> None:
+        super().__init__(color)
+        self.heuristic = BaseHeuristic.registry[heuristic.lower()](color)
+
+
+class GreedyAgent(InformedAgent):
+    """
+        An evil agent who uses greedy search to maximize it's heuristic.
+        If multiple actions result in the same maximum value, it will randomly
+        select one of those actions.
     """
 
     def get_action(self, game_state):
-        count_act_list = [(game_state.get_successor(a).black_white_counts, a)
-                          for a in game_state.legal_actions]
-        max_num = -1
-        max_action_list = []
-        if game_state.status == GameStatus.BLACK:
-            for count_act in count_act_list:
-                if (count_act[0][0] > max_num):
-                    max_action_list = [count_act[1]]
-                    max_num = count_act[0][0]
-                elif (count_act[0][0] == max_num):
-                    max_action_list.append(count_act[1])
-        else:
-            for count_act in count_act_list:
-                if (count_act[0][1] > max_num):
-                    max_action_list = [count_act[1]]
-                    max_num = count_act[0][1]
-                elif (count_act[0][1] == max_num):
-                    max_action_list.append(count_act[1])
+        values = [
+            self.heuristic(game_state.get_successor(a))
+            for a in game_state.legal_actions
+        ]
+        max_value = max(values)
+        max_action_list = [
+            a
+            for a, v in zip(game_state.legal_actions, values)
+            if v == max_value
+        ]
         return random.choice(max_action_list)
 
 

@@ -16,7 +16,7 @@ def seed_everything(seed: int) -> None:
     # torch.backends.cudnn.deterministic = True
 
 
-def get_agent_from_cli_name(cli_list: list[str], color: ColorType) -> BaseAgent:
+def get_agent_from_cli(cli_list: list[str], color: ColorType) -> BaseAgent:
     agent_name = cli_list[0]
     args = cli_list[1:]
     kwargs = {}
@@ -25,7 +25,7 @@ def get_agent_from_cli_name(cli_list: list[str], color: ColorType) -> BaseAgent:
         if k == 'depth':
             v = int(v)
         elif k == 'heuristic':
-            raise NotImplementedError("Heuristic is not implemented.")
+            pass
         else:
             raise ValueError(f"Unknown arg {k}={v}.")
         kwargs[k] = v
@@ -55,8 +55,8 @@ Add copyright information here.
     if seed is not None:
         seed_everything(seed)
 
-    agent1 = get_agent_from_cli_name(args.agent1, 'B')
-    agent2 = get_agent_from_cli_name(args.agent2, 'W')
+    agent1 = get_agent_from_cli(args.agent1, 'B')
+    agent2 = get_agent_from_cli(args.agent2, 'W')
     game = Game(agent1, agent2, not args.no_graphics)
 
     game.start()
