@@ -27,6 +27,8 @@ def get_agent_from_cli(cli_list: list[str], color: ColorType) -> BaseAgent:
             v = int(v)
         elif k == 'heuristic':
             pass
+        elif k == 'branch':
+            v = int(v)
         else:
             raise ValueError(f"Unknown arg {k}={v}.")
         kwargs[k] = v
