@@ -99,9 +99,16 @@ class GreedyAgent(InformedAgent):
 
 
 class MinimaxAgent(InformedAgent):
-    def __init__(self, color: ColorType, heuristic: str, depth: int):
+    def __init__(
+        self,
+        color: ColorType,
+        heuristic: str,
+        depth: int,
+        branch: Optional[int] = None
+    ):
         super().__init__(color, heuristic)
         self.depth = depth
+        self.branch = branch
 
     def get_action(self, game_state):
         def max_node(
@@ -117,9 +124,20 @@ class MinimaxAgent(InformedAgent):
             if not legal_actions:
                 legal_actions = [None]
 
+            legal_actions_and_successors = [
+                (a, state.get_successor(a)) for a in legal_actions
+            ]
+            random.shuffle(legal_actions_and_successors)
+            legal_actions_and_successors.sort(
+                key=lambda x: self.heuristic(x[1]),
+                reverse=True
+            )
+
+            if self.branch is not None:
+                legal_actions_and_successors[self.branch:] = []
+
             max_action = None
-            for action in legal_actions:
-                successor = state.get_successor(action)
+            for action, successor in legal_actions_and_successors:
                 cur_v = min_node(successor, cur_depth, alpha, beta)
                 if v < cur_v:
                     v = cur_v
@@ -141,8 +159,19 @@ class MinimaxAgent(InformedAgent):
             if not legal_actions:
                 legal_actions = [None]
 
-            for action in legal_actions:
-                successor = state.get_successor(action)
+            legal_actions_and_successors = [
+                (a, state.get_successor(a)) for a in legal_actions
+            ]
+            random.shuffle(legal_actions_and_successors)
+            legal_actions_and_successors.sort(
+                key=lambda x: self.heuristic(x[1]),
+                reverse=False
+            )
+
+            if self.branch is not None:
+                legal_actions_and_successors[self.branch:] = []
+
+            for _, successor in legal_actions_and_successors:
                 cur_v, _ = max_node(successor, cur_depth+1, alpha, beta)
                 v = min(v, cur_v)
                 if v <= alpha:
