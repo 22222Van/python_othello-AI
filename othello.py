@@ -88,6 +88,8 @@ Add copyright information here.
         print(f'Black {black_count}-{white_count} White')
 
     else:
+        seed_everything(seed)
+
         num_processors: int = args.num_processors
 
         if debug or isinstance(agent1, Player) or isinstance(agent2, Player):
@@ -104,7 +106,7 @@ Add copyright information here.
             })
             with Pool(processes=num_processors) as pool:
                 args_list = [
-                    (agent1, agent2, graphics, debug, i+seed)
+                    (agent1, agent2, graphics, debug, random.getrandbits(32))
                     for i in range(total_games)
                 ]
                 with tqdm(total=total_games, desc="0-0-0") as pbar:
