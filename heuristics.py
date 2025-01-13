@@ -51,3 +51,83 @@ class CountPiecesDifference(BaseHeuristic):
             return v
         else:
             return -v
+
+# FIXME:This may cause bugs in minimax
+# class CountLegalActions(BaseHeuristic):
+#     def evaluate(self, game_state, color) -> float:
+#         return len(game_state.legal_actions)
+
+
+class WeightedCountPieces(BaseHeuristic):
+    """
+    在原有每一个棋子得一分的基础上，
+    棋子在角落额外得两分，棋子在边上额外得一分
+    """
+    def evaluate(self, game_state, color) -> float:
+        black_score = 0
+        white_score = 0
+
+        bn, wn = game_state.black_white_counts
+        black_score += bn
+        white_score += wn
+
+        #在原有每一个棋子得一分的基础上，
+        #棋子在角落额外得两分，棋子在边上额外得一分
+        for i in range(BOARD_WIDTH):
+            if game_state.grid[0][i] == 'B':
+                black_score += 1
+            if game_state.grid[0][i] == 'W':
+                white_score += 1
+            if game_state.grid[BOARD_WIDTH-1][i] == 'B':
+                black_score += 1
+            if game_state.grid[BOARD_WIDTH-1][i] == 'W':
+                white_score += 1
+            
+            if game_state.grid[i][0] == 'B':
+                black_score += 1
+            if game_state.grid[i][0] == 'W':
+                white_score += 1
+            if game_state.grid[i][BOARD_WIDTH-1] == 'B':
+                black_score += 1
+            if game_state.grid[i][BOARD_WIDTH-1] == 'W':
+                white_score += 1
+
+        if color == 'B':
+            return black_score
+        else:
+            return white_score
+
+# class MixedHeuristic(BaseHeuristic):
+#     def evaluate(self, game_state, color) -> float:
+#         black_score = 0
+#         white_score = 0
+
+#         bn, wn = game_state.black_white_counts
+#         black_score += bn
+#         white_score += wn
+
+#         #在原有每一个棋子得一分的基础上，
+#         #棋子在角落额外得两分，棋子在边上额外得一分
+#         for i in range(BOARD_WIDTH):
+#             if game_state.grid[0][i] == 'B':
+#                 black_score += 1
+#             if game_state.grid[0][i] == 'W':
+#                 white_score += 1
+#             if game_state.grid[BOARD_WIDTH-1][i] == 'B':
+#                 black_score += 1
+#             if game_state.grid[BOARD_WIDTH-1][i] == 'W':
+#                 white_score += 1
+            
+#             if game_state.grid[i][0] == 'B':
+#                 black_score += 1
+#             if game_state.grid[i][0] == 'W':
+#                 white_score += 1
+#             if game_state.grid[i][BOARD_WIDTH-1] == 'B':
+#                 black_score += 1
+#             if game_state.grid[i][BOARD_WIDTH-1] == 'W':
+#                 white_score += 1
+
+        # if color == 'B':
+        #     return black_score+len(game_state.legal_actions)
+        # else:
+        #     return white_score+len(game_state.legal_actions)
