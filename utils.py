@@ -1,19 +1,32 @@
+import os
+from enum import Enum
 from typing import (
     List, Tuple, Union, Literal, Optional, Type, TypeVar, Generic, Callable,
     NoReturn, Any, overload, TYPE_CHECKING
 )
-import os
+
+BOARD_WIDTH = 8
+INF = float('inf')
+
+
+class PieceColor(Enum):
+    BLACK = 1
+    WHITE = -1
+    EMPTY = 0
+
+
+BLACK = PieceColor.BLACK
+WHITE = PieceColor.WHITE
+EMPTY = PieceColor.EMPTY
 
 
 PathObj = Union[str, os.PathLike[str]]
-ColorType = Literal['W', 'B']
-PiecesCharType = Literal['|', ColorType]
-GridType = List[List[PiecesCharType]]
+PlayerColorType = Literal[PieceColor.BLACK, PieceColor.WHITE]  # FIXME
+GridType = List[List[PieceColor]]
 PointType = Tuple[int, int]
-BOARD_WIDTH = 8
 
 T = TypeVar('T')
-INF = float('inf')
+
 
 class lazy_property(Generic[T]):
     """

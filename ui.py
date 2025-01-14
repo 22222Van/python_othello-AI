@@ -4,8 +4,8 @@ from utils import *
 SQUARE_SIZE = 60
 WINDOW_SIZE = BOARD_WIDTH * SQUARE_SIZE
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
+WHITE_COLOR = (255, 255, 255)
+BLACK_COLOR = (0, 0, 0)
 BACKGROUND_COLOR = (249, 214, 91)
 FPS = 24
 
@@ -51,20 +51,20 @@ def draw_board(grid, color, legal_actions):
         for x in range(BOARD_WIDTH):
             rect = pygame.Rect(y * SQUARE_SIZE, x *
                                SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-            pygame.draw.rect(window, BLACK, rect, 1)
+            pygame.draw.rect(window, BLACK_COLOR, rect, 1)
             if (x, y) in legal_actions:
-                if color == 'B':
+                if color == BLACK:
                     pygame.draw.circle(
-                        window, BLACK, rect.center, SQUARE_SIZE // 8)
-                elif color == 'W':
+                        window, BLACK_COLOR, rect.center, SQUARE_SIZE // 8)
+                elif color == WHITE:
                     pygame.draw.circle(
-                        window, WHITE, rect.center, SQUARE_SIZE // 8)
-            elif grid[x][y] == 'B':
+                        window, WHITE_COLOR, rect.center, SQUARE_SIZE // 8)
+            elif grid[x][y] == BLACK:
                 pygame.draw.circle(
-                    window, BLACK, rect.center, SQUARE_SIZE // 2 - 5)
-            elif grid[x][y] == 'W':
+                    window, BLACK_COLOR, rect.center, SQUARE_SIZE // 2 - 5)
+            elif grid[x][y] == WHITE:
                 pygame.draw.circle(
-                    window, WHITE, rect.center, SQUARE_SIZE // 2 - 5)
+                    window, WHITE_COLOR, rect.center, SQUARE_SIZE // 2 - 5)
 
     pygame.display.update()
 

@@ -13,7 +13,7 @@ class BaseAgent(ABC):
     """
     registry: dict[str, Type['BaseAgent']] = {}
 
-    def __init__(self, color: ColorType) -> None:
+    def __init__(self, color: PlayerColorType) -> None:
         super().__init__()
         self.color = color
 
@@ -72,7 +72,7 @@ class InformedAgent(BaseAgent):
         Abstract base class for all agents which have an heuristic function.
     """
 
-    def __init__(self, color: ColorType, heuristic: str) -> None:
+    def __init__(self, color: PlayerColorType, heuristic: str) -> None:
         super().__init__(color)
         self.heuristic = BaseHeuristic.registry[heuristic.lower()](color)
 
@@ -101,7 +101,7 @@ class GreedyAgent(InformedAgent):
 class MinimaxAgent(InformedAgent):
     def __init__(
         self,
-        color: ColorType,
+        color: PlayerColorType,
         heuristic: str,
         depth: int,
         branch: Optional[int] = None

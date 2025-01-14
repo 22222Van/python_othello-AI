@@ -6,10 +6,10 @@ from utils import *
 
 class GameStatus(Enum):
     BLACK = 1
-    WHITE = 2
-    BLACK_WIN = 3
-    WHITE_WIN = 4
-    DRAW = 5
+    WHITE = -1
+    BLACK_WIN = 2
+    WHITE_WIN = -2
+    DRAW = 0
 
 
 class GameState():
@@ -21,11 +21,11 @@ class GameState():
 
         if other is None:
             str_board = [
-                ['|' for _ in range(BOARD_WIDTH)]
+                [EMPTY for _ in range(BOARD_WIDTH)]
                 for _ in range(BOARD_WIDTH)
             ]
-            str_board[3][3], str_board[4][4] = 'W', 'W'
-            str_board[3][4], str_board[4][3] = 'B', 'B'
+            str_board[3][3], str_board[4][4] = WHITE, WHITE
+            str_board[3][4], str_board[4][3] = BLACK, BLACK
             self._grid: GridType = str_board
             self._status: GameStatus = GameStatus.BLACK
         else:
@@ -69,9 +69,9 @@ class GameState():
         white_count = 0
         for i in range(BOARD_WIDTH):
             for j in range(BOARD_WIDTH):
-                if self.grid[i][j] == 'B':
+                if self.grid[i][j] == BLACK:
                     black_count += 1
-                if self.grid[i][j] == 'W':
+                if self.grid[i][j] == WHITE:
                     white_count += 1
         return black_count, white_count
 
@@ -90,7 +90,12 @@ class GameState():
                 if (j-1, k-1) in self.legal_actions:
                     disp_mat[j][k] = '*'
                 else:
-                    disp_mat[j][k] = self.grid[j-1][k-1]
+                    if self.grid[j-1][k-1] == BLACK:
+                        disp_mat[j][k] = 'B'
+                    elif self.grid[j-1][k-1] == WHITE:
+                        disp_mat[j][k] = 'W'
+                    else:
+                        disp_mat[j][k] = '|'
         for row in disp_mat:
             return_str += ' '.join(row)
             return_str += '\n'
@@ -109,7 +114,7 @@ class GameState():
         return return_str
 
     def draw_board(self) -> None:
-        color = 'B' if self.status == GameStatus.BLACK else 'W'
+        color = BLACK if self.status == GameStatus.BLACK else WHITE
         ui.draw_board(self.grid, color, self.legal_actions)
 
     # legal_actions、get_successor、翻转棋子算法相关
@@ -125,11 +130,11 @@ class GameState():
         """
         Get the placeable neighbours of board[x][y]
         """
-        color = 'B' if self.status == GameStatus.BLACK else 'W'
+        color = BLACK if self.status == GameStatus.BLACK else WHITE
 
-        opponent_color = 'W'
-        if color == 'W':
-            opponent_color = 'B'
+        opponent_color = WHITE
+        if color == WHITE:
+            opponent_color = BLACK
 
         output = []
         if self._grid[x][y] != opponent_color:
@@ -139,7 +144,7 @@ class GameState():
             for j in [1, 0, -1]:
                 if not ((i == 0) and (j == 0)) and self.is_in_board(x+i, y+j):
                     legal = False
-                    if self._grid[x+i][y+j] == '|':
+                    if self._grid[x+i][y+j] == EMPTY:
                         temp_x = x-i
                         temp_y = y-j
                         while self.is_in_board(temp_x, temp_y):
@@ -199,9 +204,9 @@ class GameState():
         i = position[0] + row_inc
         j = position[1] + col_inc
 
-        other = 'W'
-        if color == 'W':
-            other = 'B'
+        other = WHITE
+        if color == WHITE:
+            other = BLACK
 
         if i in range(8) and j in range(8) and self._grid[i][j] == other:
             # assures there is at least one piece to flip
@@ -226,7 +231,7 @@ class GameState():
         '''
         def get_successor_helper() -> 'GameState':
             successor = self.clone()
-            color = 'B' if self.status == GameStatus.BLACK else 'W'
+            color = BLACK if self.status == GameStatus.BLACK else WHITE
 
             if action is not None:
                 x, y = action
@@ -236,7 +241,7 @@ class GameState():
 
             # 不管 successor 的棋局是否已经结束，因为要获得 successor.legal_actions，
             # 所以必须暂时先给它赋一个 WHITE 或 BLACK 的值
-            if color == 'B':
+            if color == BLACK:
                 successor._status = GameStatus.WHITE
             else:
                 successor._status = GameStatus.BLACK

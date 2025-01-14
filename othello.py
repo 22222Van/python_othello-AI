@@ -17,7 +17,7 @@ def seed_everything(seed: int) -> None:
     # torch.backends.cudnn.deterministic = True
 
 
-def get_agent_from_cli(cli_list: list[str], color: ColorType) -> BaseAgent:
+def get_agent_from_cli(cli_list: list[str], color: PlayerColorType) -> BaseAgent:
     agent_name = cli_list[0]
     args = cli_list[1:]
     kwargs = {}
@@ -60,8 +60,8 @@ Add copyright information here.
     if seed is not None:
         seed_everything(seed)
 
-    agent1 = get_agent_from_cli(args.agent1, 'B')
-    agent2 = get_agent_from_cli(args.agent2, 'W')
+    agent1 = get_agent_from_cli(args.agent1, BLACK)
+    agent2 = get_agent_from_cli(args.agent2, WHITE)
 
     total_games: int = args.total_games
     graphics: bool = not args.no_graphics
