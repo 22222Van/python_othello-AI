@@ -1,3 +1,5 @@
+import numpy as np
+
 import argparse
 from agents import BaseAgent, Player
 from game import Game
@@ -9,7 +11,7 @@ def seed_everything(seed: int) -> None:
     import random
 
     random.seed(seed)
-    # np.random.seed(seed)
+    np.random.seed(seed)
     # torch.manual_seed(seed)
     # if torch.cuda.is_available():
     #     torch.cuda.manual_seed(seed)

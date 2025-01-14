@@ -1,28 +1,23 @@
 import os
-from enum import Enum
 from typing import (
     List, Tuple, Union, Literal, Optional, Type, TypeVar, Generic, Callable,
     NoReturn, Any, overload, TYPE_CHECKING
 )
+import numpy as np
+from numpy.typing import NDArray
 
 BOARD_WIDTH = 8
 INF = float('inf')
 
 
-class PieceColor(Enum):
-    BLACK = 1
-    WHITE = -1
-    EMPTY = 0
-
-
-BLACK = PieceColor.BLACK
-WHITE = PieceColor.WHITE
-EMPTY = PieceColor.EMPTY
+BLACK = 1
+WHITE = -1
+EMPTY = 0
 
 
 PathObj = Union[str, os.PathLike[str]]
-PlayerColorType = Literal[PieceColor.BLACK, PieceColor.WHITE]  # FIXME
-GridType = List[List[PieceColor]]
+PlayerColorType = Literal[1, -1]
+GridType = NDArray[np.int_]
 PointType = Tuple[int, int]
 
 T = TypeVar('T')

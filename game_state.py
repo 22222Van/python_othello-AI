@@ -1,3 +1,5 @@
+import numpy as np
+
 from enum import Enum
 import copy
 import ui
@@ -20,13 +22,10 @@ class GameState():
         super().__init__()
 
         if other is None:
-            str_board = [
-                [EMPTY for _ in range(BOARD_WIDTH)]
-                for _ in range(BOARD_WIDTH)
-            ]
-            str_board[3][3], str_board[4][4] = WHITE, WHITE
-            str_board[3][4], str_board[4][3] = BLACK, BLACK
-            self._grid: GridType = str_board
+            board = np.full((8, 8), EMPTY, dtype=int)
+            board[3][3], board[4][4] = WHITE, WHITE
+            board[3][4], board[4][3] = BLACK, BLACK
+            self._grid: GridType = board
             self._status: StateStatus = StateStatus.BLACK_TURN
         else:
             self._grid = copy.deepcopy(other._grid)
