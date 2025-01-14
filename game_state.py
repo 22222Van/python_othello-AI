@@ -22,9 +22,9 @@ class GameState():
         super().__init__()
 
         if other is None:
-            board = np.full((8, 8), EMPTY, dtype=int)
-            board[3][3], board[4][4] = WHITE, WHITE
-            board[3][4], board[4][3] = BLACK, BLACK
+            board = np.full((BOARD_WIDTH, BOARD_WIDTH), EMPTY, dtype=int)
+            board[3, 3], board[4, 4] = WHITE, WHITE
+            board[3, 4], board[4, 3] = BLACK, BLACK
             self._grid: GridType = board
             self._status: StateStatus = StateStatus.BLACK_TURN
         else:
@@ -59,20 +59,13 @@ class GameState():
     @property
     def running(self) -> bool:
         return (
-            self.status == StateStatus.BLACK_TURN or self.status == StateStatus.WHITE_TURN
+            self.status == StateStatus.BLACK_TURN or
+            self.status == StateStatus.WHITE_TURN
         )
 
     @lazy_property
     def black_white_counts(self) -> Tuple[int, int]:
-        black_count = 0
-        white_count = 0
-        for i in range(BOARD_WIDTH):
-            for j in range(BOARD_WIDTH):
-                if self.grid[i][j] == BLACK:
-                    black_count += 1
-                if self.grid[i][j] == WHITE:
-                    white_count += 1
-        return black_count, white_count
+        return np.sum(self.grid == BLACK), np.sum(self.grid == WHITE)
 
     # 展示棋局相关
 
@@ -93,8 +86,11 @@ class GameState():
                         disp_mat[j][k] = 'B'
                     elif self.grid[j-1][k-1] == WHITE:
                         disp_mat[j][k] = 'W'
-                    else:
+                    elif self.grid[j-1][k-1] == EMPTY:
                         disp_mat[j][k] = '|'
+                    else:
+                        raise ValueError(
+                            "Exists undefined pieces in the game.")
         for row in disp_mat:
             return_str += ' '.join(row)
             return_str += '\n'
@@ -131,26 +127,24 @@ class GameState():
         """
         color = BLACK if self.status == StateStatus.BLACK_TURN else WHITE
 
-        opponent_color = WHITE
-        if color == WHITE:
-            opponent_color = BLACK
+        opponent_color = -color
 
         output = []
-        if self._grid[x][y] != opponent_color:
+        if self._grid[x, y] != opponent_color:
             return output
 
         for i in [1, 0, -1]:
             for j in [1, 0, -1]:
                 if not ((i == 0) and (j == 0)) and self.is_in_board(x+i, y+j):
                     legal = False
-                    if self._grid[x+i][y+j] == EMPTY:
+                    if self._grid[x+i, y+j] == EMPTY:
                         temp_x = x-i
                         temp_y = y-j
                         while self.is_in_board(temp_x, temp_y):
-                            if self._grid[temp_x][temp_y] == color:
+                            if self._grid[temp_x, temp_y] == color:
                                 legal = True
                                 break
-                            if self._grid[temp_x][temp_y] != opponent_color:
+                            if self._grid[temp_x, temp_y] != opponent_color:
                                 break
                             temp_y -= j
                             temp_x -= i
@@ -203,25 +197,23 @@ class GameState():
         i = position[0] + row_inc
         j = position[1] + col_inc
 
-        other = WHITE
-        if color == WHITE:
-            other = BLACK
+        other = -color
 
-        if i in range(8) and j in range(8) and self._grid[i][j] == other:
+        if i in range(BOARD_WIDTH) and j in range(BOARD_WIDTH) and self._grid[i, j] == other:
             # assures there is at least one piece to flip
             places = places + [(i, j)]
             i = i + row_inc
             j = j + col_inc
-            while i in range(8) and j in range(8) and self._grid[i][j] == other:
+            while i in range(BOARD_WIDTH) and j in range(BOARD_WIDTH) and self._grid[i, j] == other:
                 # search for more pieces to flip
                 places = places + [(i, j)]
                 i = i + row_inc
                 j = j + col_inc
-            if i in range(8) and j in range(8) and self._grid[i][j] == color:
+            if i in range(BOARD_WIDTH) and j in range(BOARD_WIDTH) and self._grid[i, j] == color:
                 # found a piece of the right color to flip the pieces between
                 for pos in places:
                     # flips
-                    self._grid[pos[0]][pos[1]] = color
+                    self._grid[pos[0], pos[1]] = color
 
     def get_successor(self, action: Optional[PointType]) -> 'GameState':
         '''
@@ -234,7 +226,7 @@ class GameState():
 
             if action is not None:
                 x, y = action
-                successor._grid[x][y] = color
+                successor._grid[x, y] = color
                 for i in range(1, 9):
                     successor._flip(i, (x, y), color)
 
