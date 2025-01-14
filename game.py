@@ -55,6 +55,9 @@ class Game():
                     print("No move, pass")
                 self.game_state = self.game_state.get_successor(None)
 
+            if self.debug:
+                input("DEBUG: Press <Enter> / <Return> to continue...")
+
         if self.debug:
             print(f'{self.game_state}')
 
