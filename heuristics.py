@@ -170,8 +170,11 @@ class WeightedMajorityDifference(BaseHeuristic):
             white_count=0
             for j in range(BOARD_WIDTH):
                 if game_state.grid[i][j]==BLACK:
+
                     if (i==0 or i==BOARD_WIDTH-1) and (j==0 or j==BOARD_WIDTH-1):
                         black_count+=3
+                    elif (i,j) in star_positions:
+                        pass
                     elif (i==0 or i==BOARD_WIDTH-1) or (j==0 or j==BOARD_WIDTH-1):
                         black_count+=2
                     else:
@@ -179,6 +182,8 @@ class WeightedMajorityDifference(BaseHeuristic):
                 if game_state.grid[i][j]==WHITE:
                     if (i==0 or i==BOARD_WIDTH-1) and (j==0 or j==BOARD_WIDTH-1):
                         white_count+=3
+                    elif (i,j) in star_positions:
+                        pass
                     elif (i==0 or i==BOARD_WIDTH-1) or (j==0 or j==BOARD_WIDTH-1):
                         white_count+=2
                     else:
