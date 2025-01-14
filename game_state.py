@@ -46,7 +46,7 @@ class GameState():
 
     # 复制GameState相关
 
-    def __deepcopy__(self, memo: dict[int, Any]) -> 'GameState':
+    def __deepcopy__(self, memo: Dict[int, Any]) -> 'GameState':
         if id(self) in memo:
             return memo[id(self)]
         return GameState(self)

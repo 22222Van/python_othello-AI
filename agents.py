@@ -11,7 +11,7 @@ class BaseAgent(ABC):
     """
     Abstract base class for all agents.
     """
-    registry: dict[str, Type['BaseAgent']] = {}
+    registry: Dict[str, Type['BaseAgent']] = {}
 
     def __init__(self, color: PlayerColorType) -> None:
         super().__init__()
@@ -183,3 +183,60 @@ class MinimaxAgent(InformedAgent):
 
         assert max_action is not None
         return max_action
+
+
+class DeepLearningAgent(BaseAgent):
+    path_table = {
+        'cnn_arch_1': './saves/cnn_arch_1.pth',
+        'cnn_arch_2': './saves/cnn_arch_2.pth',
+        'cnn_arch_3': './saves/cnn_arch_3.pth',
+        'cnn_arch_4': './saves/cnn_arch_4.pth',
+        'transformer': './saves/transformer.pth',
+    }
+
+    def __init__(
+        self,
+        color: PlayerColorType,
+        model: str = 'cnn_arch_2',
+    ):
+        from torch_models import (
+            cnn_arch_1,
+            cnn_arch_2,
+            cnn_arch_3,
+            cnn_arch_4,
+            mlp,
+            transformer,
+            predict
+        )
+        import torch
+        if TYPE_CHECKING:
+            from torch import nn
+
+        super().__init__(color)
+
+        if model == 'cnn_arch_1':
+            self.model: nn.Module = cnn_arch_1()
+        elif model == 'cnn_arch_2':
+            self.model: nn.Module = cnn_arch_2()
+        elif model == 'cnn_arch_3':
+            self.model: nn.Module = cnn_arch_3()
+        elif model == 'cnn_arch_4':
+            self.model: nn.Module = cnn_arch_4()
+        elif model == 'transformer':
+            self.model: nn.Module = transformer()
+        else:
+            raise ValueError(f"Unknown model `{model}`")
+        self.model.load_state_dict(
+            torch.load(
+                self.path_table[model], map_location=torch.device('cpu')
+            )
+        )
+        self.model.eval()
+        self.predict = predict
+
+    def get_action(self, game_state):
+        board = game_state.grid
+        player = 1 if self.color == BLACK else 0
+        legal_list = game_state.legal_actions
+        action = self.predict(self.model, board, player, legal_list)
+        return action

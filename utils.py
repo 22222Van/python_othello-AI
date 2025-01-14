@@ -1,6 +1,6 @@
 import os
 from typing import (
-    List, Tuple, Union, Literal, Optional, Type, TypeVar, Generic, Callable,
+    List, Dict, Tuple, Union, Literal, Optional, Type, TypeVar, Generic, Callable,
     NoReturn, Any, overload, TYPE_CHECKING
 )
 import numpy as np
@@ -9,13 +9,28 @@ from numpy.typing import NDArray
 BOARD_WIDTH = 8
 INF = float('inf')
 
+star_positions = [
+    (1, 0),
+    (0, 1),
+    (1, 1),
+    (BOARD_WIDTH-2, 0),
+    (BOARD_WIDTH-2, 1),
+    (BOARD_WIDTH-1, 1),
+    (0, BOARD_WIDTH-2),
+    (1, BOARD_WIDTH-2),
+    (1, BOARD_WIDTH-1),
+    (BOARD_WIDTH-2, BOARD_WIDTH-2),
+    (BOARD_WIDTH-2, BOARD_WIDTH-1),
+    (BOARD_WIDTH-1, BOARD_WIDTH-2)
+]
+
 
 BLACK = 1
 WHITE = -1
 EMPTY = 0
 
 
-PathObj = Union[str, os.PathLike[str]]
+PathObj = Union[str, os.PathLike]  # type: ignore
 PlayerColorType = Literal[1, -1]
 GridType = NDArray[np.int_]
 PointType = Tuple[int, int]

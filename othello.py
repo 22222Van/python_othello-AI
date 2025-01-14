@@ -1,4 +1,5 @@
 import numpy as np
+# import torch
 
 import argparse
 from agents import BaseAgent, Player
@@ -18,7 +19,7 @@ def seed_everything(seed: int) -> None:
     # torch.backends.cudnn.deterministic = True
 
 
-def get_agent_from_cli(cli_list: list[str], color: PlayerColorType) -> BaseAgent:
+def get_agent_from_cli(cli_list: List[str], color: PlayerColorType) -> BaseAgent:
     agent_name = cli_list[0]
     args = cli_list[1:]
     kwargs = {}

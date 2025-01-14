@@ -8,7 +8,7 @@ class BaseHeuristic(ABC):
     """
     Abstract base class for all evaluation functions.
     """
-    registry: dict[str, Type['BaseHeuristic']] = {}
+    registry: Dict[str, Type['BaseHeuristic']] = {}
 
     def __init__(self, color: PlayerColorType) -> None:
         super().__init__()
@@ -52,7 +52,7 @@ class CountPiecesDifference(BaseHeuristic):
         else:
             return -v
 
-# FIXME:This may cause bugs in minimax
+# FIXME: This may cause bugs in minimax
 # class CountLegalActions(BaseHeuristic):
 #     def evaluate(self, game_state, color) -> float:
 #         return len(game_state.legal_actions)
@@ -63,6 +63,7 @@ class WeightedCountPieces(BaseHeuristic):
     在原有每一个棋子得一分的基础上，
     棋子在角落额外得两分，棋子在边上额外得一分
     """
+
     def evaluate(self, game_state, color) -> float:
         black_score = 0
         white_score = 0
@@ -71,8 +72,8 @@ class WeightedCountPieces(BaseHeuristic):
         black_score += bn
         white_score += wn
 
-        #在原有每一个棋子得一分的基础上，
-        #棋子在角落额外得两分，棋子在边上额外得一分
+        # 在原有每一个棋子得一分的基础上，
+        # 棋子在角落额外得两分，棋子在边上额外得一分
         for i in range(BOARD_WIDTH):
             if game_state.grid[0][i] == BLACK:
                 black_score += 1
@@ -82,7 +83,7 @@ class WeightedCountPieces(BaseHeuristic):
                 black_score += 1
             if game_state.grid[BOARD_WIDTH-1][i] == WHITE:
                 white_score += 1
-            
+
             if game_state.grid[i][0] == BLACK:
                 black_score += 1
             if game_state.grid[i][0] == WHITE:
@@ -117,7 +118,7 @@ class WeightedCountPieces(BaseHeuristic):
 #                 black_score += 1
 #             if game_state.grid[BOARD_WIDTH-1][i] == WHITE:
 #                 white_score += 1
-            
+
 #             if game_state.grid[i][0] == BLACK:
 #                 black_score += 1
 #             if game_state.grid[i][0] == WHITE:
@@ -132,60 +133,67 @@ class WeightedCountPieces(BaseHeuristic):
         # else:
         #     return white_score+len(game_state.legal_actions)
 
+
 class MajorityOfRows(BaseHeuristic):
     """
     if a row has # of Black># of White, black_score++
     if a row has # of Black<# of White, white_score++
     """
-    def evaluate(self, game_state, color) -> float:
-        black_score=0
-        white_score=0
-        for i in range(BOARD_WIDTH):
-            black_count=0
-            white_count=0
-            for j in range(BOARD_WIDTH):
-                if game_state.grid[i][j]==BLACK:
-                    black_count+=1
-                if game_state.grid[i][j]==WHITE:
-                    white_count+=1
-            if white_count>black_count:
-                white_score+=1
-            elif white_count<black_count:
-                black_score+=1
-        
-        return black_score if color==BLACK else white_score
-    
 
-#Performs the best when depth=3, agent=Minimaxagent
+    def evaluate(self, game_state, color) -> float:
+        black_score = 0
+        white_score = 0
+        for i in range(BOARD_WIDTH):
+            black_count = 0
+            white_count = 0
+            for j in range(BOARD_WIDTH):
+                if game_state.grid[i][j] == BLACK:
+                    black_count += 1
+                if game_state.grid[i][j] == WHITE:
+                    white_count += 1
+            if white_count > black_count:
+                white_score += 1
+            elif white_count < black_count:
+                black_score += 1
+
+        return black_score if color == BLACK else white_score
+
+
+# Performs the best when depth=3, agent=Minimaxagent
 class WeightedMajorityDifference(BaseHeuristic):
     """
     if a row has weighted score of Black > weighted score of White, black_score+=|weighted score of Black - weighted score of White|
     if a row has weighted score of Black < weighted score of White, white_score+=|weighted score of Black - weighted score of White|
     """
+
     def evaluate(self, game_state, color) -> float:
-        black_score=0
-        white_score=0
+        black_score = 0
+        white_score = 0
         for i in range(BOARD_WIDTH):
-            black_count=0
-            white_count=0
+            black_count = 0
+            white_count = 0
             for j in range(BOARD_WIDTH):
-                if game_state.grid[i][j]==BLACK:
-                    if (i==0 or i==BOARD_WIDTH-1) and (j==0 or j==BOARD_WIDTH-1):
-                        black_count+=3
-                    elif (i==0 or i==BOARD_WIDTH-1) or (j==0 or j==BOARD_WIDTH-1):
-                        black_count+=2
+                if game_state.grid[i][j] == BLACK:
+                    if (i == 0 or i == BOARD_WIDTH-1) and (j == 0 or j == BOARD_WIDTH-1):
+                        black_count += 3
+                    elif (i, j) in star_positions:
+                        pass
+                    elif (i == 0 or i == BOARD_WIDTH-1) or (j == 0 or j == BOARD_WIDTH-1):
+                        black_count += 2
                     else:
-                        black_count+=1
-                if game_state.grid[i][j]==WHITE:
-                    if (i==0 or i==BOARD_WIDTH-1) and (j==0 or j==BOARD_WIDTH-1):
-                        white_count+=3
-                    elif (i==0 or i==BOARD_WIDTH-1) or (j==0 or j==BOARD_WIDTH-1):
-                        white_count+=2
+                        black_count += 1
+                if game_state.grid[i][j] == WHITE:
+                    if (i == 0 or i == BOARD_WIDTH-1) and (j == 0 or j == BOARD_WIDTH-1):
+                        white_count += 3
+                    elif (i, j) in star_positions:
+                        pass
+                    elif (i == 0 or i == BOARD_WIDTH-1) or (j == 0 or j == BOARD_WIDTH-1):
+                        white_count += 2
                     else:
-                        white_count+=1
-            if white_count>black_count:
-                white_score+=white_count-black_count
-            elif white_count<black_count:
-                black_score+=black_count-white_count
-        
-        return black_score if color==BLACK else white_score
+                        white_count += 1
+            if white_count > black_count:
+                white_score += white_count-black_count
+            elif white_count < black_count:
+                black_score += black_count-white_count
+
+        return black_score if color == BLACK else white_score
