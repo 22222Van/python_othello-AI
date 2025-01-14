@@ -2,43 +2,6 @@ import torch
 import torch.nn as nn
 
 
-def XO_to_num(board):
-    newboard = torch.zeros(8, 8)
-    for i in range(8):
-        for j in range(8):
-            if board[i][j] == 'X':
-                newboard[i][j] = 1
-            elif board[i][j] == 'O':
-                newboard[i][j] = -1
-            else:
-                newboard[i][j] = 0
-    state = newboard
-    return state
-
-
-def get_player(player):
-    if player == 'X':
-        return 1
-    else:
-        return 0
-
-
-def output_action(a):
-    letters = "ABCDEFGH"
-    action = letters[a[1]] + str(a[0]+1)
-    return action
-
-
-def get_legal_actions(legal_list):
-    letter_to_index = {letter: i for i, letter in enumerate("ABCDEFGH")}
-    new_list = []
-    for action in legal_list:
-        x = int(action[1]) - 1
-        y = letter_to_index[action[0]]
-        new_list.append((x, y))
-    return new_list
-
-
 def predict(model, board_state, current_player, legal_list):
     board_state = torch.Tensor(board_state).unsqueeze(0).to(dtype=torch.long)
     current_player = torch.Tensor([current_player]).to(dtype=torch.long)

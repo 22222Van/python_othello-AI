@@ -213,7 +213,7 @@ class DeepLearningAgent(BaseAgent):
 
     def get_action(self, game_state):
         board = game_state.grid
-        player = 1 if self.color == 1 else 0
+        player = 1 if self.color == BLACK else 0
         legal_list = game_state.legal_actions
         action = predict(self.model, board, player, legal_list)
         return action
