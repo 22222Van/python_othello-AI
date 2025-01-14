@@ -1,5 +1,5 @@
 from agents import BaseAgent
-from game_state import GameState, GameStatus
+from game_state import GameState, StateStatus
 
 import ui
 
@@ -33,14 +33,17 @@ class Game():
             if self.debug:
                 print(f'\n{self.game_state}')  # debug
 
-            color: ColorType = (
-                'B' if self.game_state.status == GameStatus.BLACK else 'W'
+            color: PlayerColorType = (
+                BLACK
+                if self.game_state.status == StateStatus.BLACK_TURN
+                else WHITE
             )
             legal_actions = self.game_state.legal_actions
 
             if len(legal_actions) != 0:
                 action = (
-                    self.black_agent.get_action(self.game_state) if color == 'B'
+                    self.black_agent.get_action(self.game_state)
+                    if color == BLACK
                     else self.white_agent.get_action(self.game_state)
                 )
                 if self.debug:
@@ -51,6 +54,9 @@ class Game():
                 if self.debug:
                     print("No move, pass")
                 self.game_state = self.game_state.get_successor(None)
+
+            if self.debug:
+                input("DEBUG: Press <Enter> / <Return> to continue...")
 
         if self.debug:
             print(f'{self.game_state}')

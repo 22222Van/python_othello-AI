@@ -1,15 +1,17 @@
+import numpy as np
+
 from enum import Enum
 import copy
 import ui
 from utils import *
 
 
-class GameStatus(Enum):
-    BLACK = 1
-    WHITE = 2
-    BLACK_WIN = 3
-    WHITE_WIN = 4
-    DRAW = 5
+class StateStatus(Enum):
+    BLACK_TURN = 1
+    WHITE_TURN = -1
+    BLACK_WINS = 2
+    WHITE_WINS = -2
+    GAME_DRAW = 0
 
 
 class GameState():
@@ -20,14 +22,11 @@ class GameState():
         super().__init__()
 
         if other is None:
-            str_board = [
-                ['|' for _ in range(BOARD_WIDTH)]
-                for _ in range(BOARD_WIDTH)
-            ]
-            str_board[3][3], str_board[4][4] = 'W', 'W'
-            str_board[3][4], str_board[4][3] = 'B', 'B'
-            self._grid: GridType = str_board
-            self._status: GameStatus = GameStatus.BLACK
+            board = np.full((BOARD_WIDTH, BOARD_WIDTH), EMPTY, dtype=int)
+            board[3, 3], board[4, 4] = WHITE, WHITE
+            board[3, 4], board[4, 3] = BLACK, BLACK
+            self._grid: GridType = board
+            self._status: StateStatus = StateStatus.BLACK_TURN
         else:
             self._grid = copy.deepcopy(other._grid)
             self._status = copy.deepcopy(other._status)
@@ -42,7 +41,7 @@ class GameState():
         return self._grid
 
     @property
-    def status(self) -> GameStatus:
+    def status(self) -> StateStatus:
         return self._status
 
     # 复制GameState相关
@@ -60,20 +59,13 @@ class GameState():
     @property
     def running(self) -> bool:
         return (
-            self.status == GameStatus.BLACK or self.status == GameStatus.WHITE
+            self.status == StateStatus.BLACK_TURN or
+            self.status == StateStatus.WHITE_TURN
         )
 
     @lazy_property
     def black_white_counts(self) -> Tuple[int, int]:
-        black_count = 0
-        white_count = 0
-        for i in range(BOARD_WIDTH):
-            for j in range(BOARD_WIDTH):
-                if self.grid[i][j] == 'B':
-                    black_count += 1
-                if self.grid[i][j] == 'W':
-                    white_count += 1
-        return black_count, white_count
+        return np.sum(self.grid == BLACK), np.sum(self.grid == WHITE)
 
     # 展示棋局相关
 
@@ -90,26 +82,34 @@ class GameState():
                 if (j-1, k-1) in self.legal_actions:
                     disp_mat[j][k] = '*'
                 else:
-                    disp_mat[j][k] = self.grid[j-1][k-1]
+                    if self.grid[j-1][k-1] == BLACK:
+                        disp_mat[j][k] = 'B'
+                    elif self.grid[j-1][k-1] == WHITE:
+                        disp_mat[j][k] = 'W'
+                    elif self.grid[j-1][k-1] == EMPTY:
+                        disp_mat[j][k] = '|'
+                    else:
+                        raise ValueError(
+                            "Exists undefined pieces in the game.")
         for row in disp_mat:
             return_str += ' '.join(row)
             return_str += '\n'
 
-        if self.status == GameStatus.BLACK:
+        if self.status == StateStatus.BLACK_TURN:
             return_str += 'Turn: Black'
-        elif self.status == GameStatus.WHITE:
+        elif self.status == StateStatus.WHITE_TURN:
             return_str += 'Turn: White'
-        elif self.status == GameStatus.BLACK_WIN:
+        elif self.status == StateStatus.BLACK_WINS:
             return_str += 'Black Wins!'
-        elif self.status == GameStatus.WHITE_WIN:
+        elif self.status == StateStatus.WHITE_WINS:
             return_str += 'White Wins!'
-        elif self.status == GameStatus.DRAW:
+        elif self.status == StateStatus.GAME_DRAW:
             return_str += 'Draw!'
 
         return return_str
 
     def draw_board(self) -> None:
-        color = 'B' if self.status == GameStatus.BLACK else 'W'
+        color = BLACK if self.status == StateStatus.BLACK_TURN else WHITE
         ui.draw_board(self.grid, color, self.legal_actions)
 
     # legal_actions、get_successor、翻转棋子算法相关
@@ -125,28 +125,26 @@ class GameState():
         """
         Get the placeable neighbours of board[x][y]
         """
-        color = 'B' if self.status == GameStatus.BLACK else 'W'
+        color = BLACK if self.status == StateStatus.BLACK_TURN else WHITE
 
-        opponent_color = 'W'
-        if color == 'W':
-            opponent_color = 'B'
+        opponent_color = -color
 
         output = []
-        if self._grid[x][y] != opponent_color:
+        if self._grid[x, y] != opponent_color:
             return output
 
         for i in [1, 0, -1]:
             for j in [1, 0, -1]:
                 if not ((i == 0) and (j == 0)) and self.is_in_board(x+i, y+j):
                     legal = False
-                    if self._grid[x+i][y+j] == '|':
+                    if self._grid[x+i, y+j] == EMPTY:
                         temp_x = x-i
                         temp_y = y-j
                         while self.is_in_board(temp_x, temp_y):
-                            if self._grid[temp_x][temp_y] == color:
+                            if self._grid[temp_x, temp_y] == color:
                                 legal = True
                                 break
-                            if self._grid[temp_x][temp_y] != opponent_color:
+                            if self._grid[temp_x, temp_y] != opponent_color:
                                 break
                             temp_y -= j
                             temp_x -= i
@@ -199,25 +197,23 @@ class GameState():
         i = position[0] + row_inc
         j = position[1] + col_inc
 
-        other = 'W'
-        if color == 'W':
-            other = 'B'
+        other = -color
 
-        if i in range(8) and j in range(8) and self._grid[i][j] == other:
+        if i in range(BOARD_WIDTH) and j in range(BOARD_WIDTH) and self._grid[i, j] == other:
             # assures there is at least one piece to flip
             places = places + [(i, j)]
             i = i + row_inc
             j = j + col_inc
-            while i in range(8) and j in range(8) and self._grid[i][j] == other:
+            while i in range(BOARD_WIDTH) and j in range(BOARD_WIDTH) and self._grid[i, j] == other:
                 # search for more pieces to flip
                 places = places + [(i, j)]
                 i = i + row_inc
                 j = j + col_inc
-            if i in range(8) and j in range(8) and self._grid[i][j] == color:
+            if i in range(BOARD_WIDTH) and j in range(BOARD_WIDTH) and self._grid[i, j] == color:
                 # found a piece of the right color to flip the pieces between
                 for pos in places:
                     # flips
-                    self._grid[pos[0]][pos[1]] = color
+                    self._grid[pos[0], pos[1]] = color
 
     def get_successor(self, action: Optional[PointType]) -> 'GameState':
         '''
@@ -226,20 +222,20 @@ class GameState():
         '''
         def get_successor_helper() -> 'GameState':
             successor = self.clone()
-            color = 'B' if self.status == GameStatus.BLACK else 'W'
+            color = BLACK if self.status == StateStatus.BLACK_TURN else WHITE
 
             if action is not None:
                 x, y = action
-                successor._grid[x][y] = color
+                successor._grid[x, y] = color
                 for i in range(1, 9):
                     successor._flip(i, (x, y), color)
 
             # 不管 successor 的棋局是否已经结束，因为要获得 successor.legal_actions，
             # 所以必须暂时先给它赋一个 WHITE 或 BLACK 的值
-            if color == 'B':
-                successor._status = GameStatus.WHITE
+            if color == BLACK:
+                successor._status = StateStatus.WHITE_TURN
             else:
-                successor._status = GameStatus.BLACK
+                successor._status = StateStatus.BLACK_TURN
 
             if len(successor.legal_actions) == 0:
                 grand_successor = successor.clone()
@@ -248,11 +244,11 @@ class GameState():
                     # 连续两个都没有 legal_actions，游戏已经结束
                     black_counts, white_counts = successor.black_white_counts
                     if black_counts > white_counts:
-                        successor._status = GameStatus.BLACK_WIN
+                        successor._status = StateStatus.BLACK_WINS
                     elif black_counts < white_counts:
-                        successor._status = GameStatus.WHITE_WIN
+                        successor._status = StateStatus.WHITE_WINS
                     else:
-                        successor._status = GameStatus.DRAW
+                        successor._status = StateStatus.GAME_DRAW
                     return successor
                 else:
                     successor.__successors_cache[None] = grand_successor

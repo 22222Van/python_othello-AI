@@ -1,14 +1,16 @@
+import numpy as np
+
 import argparse
 from agents import BaseAgent, Player
 from game import Game
-from game_state import GameStatus
+from game_state import StateStatus
 from utils import *
 import random
 
 
 def seed_everything(seed: int) -> None:
     random.seed(seed)
-    # np.random.seed(seed)
+    np.random.seed(seed)
     # torch.manual_seed(seed)
     # if torch.cuda.is_available():
     #     torch.cuda.manual_seed(seed)
@@ -16,7 +18,7 @@ def seed_everything(seed: int) -> None:
     # torch.backends.cudnn.deterministic = True
 
 
-def get_agent_from_cli(cli_list: list[str], color: ColorType) -> BaseAgent:
+def get_agent_from_cli(cli_list: list[str], color: PlayerColorType) -> BaseAgent:
     agent_name = cli_list[0]
     args = cli_list[1:]
     kwargs = {}
@@ -67,8 +69,8 @@ Add copyright information here.
     if seed is None:
         seed = random.getrandbits(32)
 
-    agent1 = get_agent_from_cli(args.agent1, 'B')
-    agent2 = get_agent_from_cli(args.agent2, 'W')
+    agent1 = get_agent_from_cli(args.agent1, BLACK)
+    agent2 = get_agent_from_cli(args.agent2, WHITE)
 
     total_games: int = args.total_games
     graphics: bool = not args.no_graphics
@@ -102,9 +104,9 @@ Add copyright information here.
 
         with Manager() as manager:
             shared_results = manager.dict({
-                GameStatus.BLACK_WIN: 0,
-                GameStatus.WHITE_WIN: 0,
-                GameStatus.DRAW: 0
+                StateStatus.BLACK_WINS: 0,
+                StateStatus.WHITE_WINS: 0,
+                StateStatus.GAME_DRAW: 0
             })
             with Pool(processes=num_processors) as pool:
                 args_list = [
@@ -114,16 +116,16 @@ Add copyright information here.
                 with tqdm(total=total_games, desc="0-0-0") as pbar:
                     for result in pool.imap_unordered(play_game, args_list):
                         shared_results[result.status] += 1
-                        black_wins = shared_results[GameStatus.BLACK_WIN]
-                        white_wins = shared_results[GameStatus.WHITE_WIN]
-                        draw = shared_results[GameStatus.DRAW]
+                        black_wins = shared_results[StateStatus.BLACK_WINS]
+                        white_wins = shared_results[StateStatus.WHITE_WINS]
+                        draw = shared_results[StateStatus.GAME_DRAW]
                         pbar.set_description(
                             f"{black_wins}-{draw}-{white_wins}")
                         pbar.update(1)
 
-            black_wins = shared_results[GameStatus.BLACK_WIN]
-            white_wins = shared_results[GameStatus.WHITE_WIN]
-            draw = shared_results[GameStatus.DRAW]
+            black_wins = shared_results[StateStatus.BLACK_WINS]
+            white_wins = shared_results[StateStatus.WHITE_WINS]
+            draw = shared_results[StateStatus.GAME_DRAW]
             print("Game Statistics:")
             print(f"   Black      Tie    White    Total")
             print(f"{black_wins:8} {draw:8} {white_wins:8} {total_games:8}")

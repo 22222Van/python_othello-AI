@@ -1,19 +1,27 @@
+import os
 from typing import (
     List, Tuple, Union, Literal, Optional, Type, TypeVar, Generic, Callable,
     NoReturn, Any, overload, TYPE_CHECKING
 )
-import os
+import numpy as np
+from numpy.typing import NDArray
+
+BOARD_WIDTH = 8
+INF = float('inf')
+
+
+BLACK = 1
+WHITE = -1
+EMPTY = 0
 
 
 PathObj = Union[str, os.PathLike[str]]
-ColorType = Literal['W', 'B']
-PiecesCharType = Literal['|', ColorType]
-GridType = List[List[PiecesCharType]]
+PlayerColorType = Literal[1, -1]
+GridType = NDArray[np.int_]
 PointType = Tuple[int, int]
-BOARD_WIDTH = 8
 
 T = TypeVar('T')
-INF = float('inf')
+
 
 class lazy_property(Generic[T]):
     """
