@@ -5,13 +5,16 @@ from heuristics import BaseHeuristic
 from abc import ABC, abstractmethod
 from utils import *
 import ui
+from models import cnn_arch_1, cnn_arch_2, cnn_arch_3, cnn_arch_4, mlp, transformer
+import torch
+from prediction import predict
 
 
 class BaseAgent(ABC):
     """
     Abstract base class for all agents.
     """
-    registry: dict[str, Type['BaseAgent']] = {}
+    registry: Dict[str, Type['BaseAgent']] = {}
 
     def __init__(self, color: PlayerColorType) -> None:
         super().__init__()
@@ -183,3 +186,20 @@ class MinimaxAgent(InformedAgent):
 
         assert max_action is not None
         return max_action
+
+
+class DeepLearningAgent(BaseAgent):
+    def __init__(self, color: PlayerColorType, model=cnn_arch_2(), model_path='saves/cnn_arch_2.pth'):
+        super().__init__(color)
+        self.model = model
+        self.model.load_state_dict(
+            torch.load(model_path, map_location=torch.device('cpu'))
+        )
+        self.model.eval()
+
+    def get_action(self, game_state):
+        board = game_state._grid
+        player = 1 if self.color == 1 else 0
+        legal_list = game_state.legal_actions
+        action = predict(self.model, board, player, legal_list)
+        return action
