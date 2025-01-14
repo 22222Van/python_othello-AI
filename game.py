@@ -1,5 +1,5 @@
 from agents import BaseAgent
-from game_state import GameState, GameStatus
+from game_state import GameState, StateStatus
 
 import ui
 
@@ -34,7 +34,7 @@ class Game():
                 print(f'\n{self.game_state}')  # debug
 
             color: PlayerColorType = (
-                BLACK if self.game_state.status == GameStatus.BLACK else WHITE
+                BLACK if self.game_state.status == StateStatus.BLACK_TURN else WHITE
             )
             legal_actions = self.game_state.legal_actions
 

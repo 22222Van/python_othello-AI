@@ -1,7 +1,7 @@
 import argparse
 from agents import BaseAgent, Player
 from game import Game
-from game_state import GameStatus
+from game_state import StateStatus
 from utils import *
 
 
@@ -91,11 +91,11 @@ Add copyright information here.
         for _ in pbar:
             game = Game(agent1, agent2, graphics, args.debug)
             final_status = game.start().status
-            if final_status == GameStatus.BLACK_WIN:
+            if final_status == StateStatus.BLACK_WINS:
                 black_wins += 1
-            elif final_status == GameStatus.WHITE_WIN:
+            elif final_status == StateStatus.WHITE_WINS:
                 white_wins += 1
-            elif final_status == GameStatus.DRAW:
+            elif final_status == StateStatus.GAME_DRAW:
                 draw += 1
 
             pbar.set_description(f"{black_wins}-{draw}-{white_wins}")

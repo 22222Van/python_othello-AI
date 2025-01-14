@@ -4,12 +4,12 @@ import ui
 from utils import *
 
 
-class GameStatus(Enum):
-    BLACK = 1
-    WHITE = -1
-    BLACK_WIN = 2
-    WHITE_WIN = -2
-    DRAW = 0
+class StateStatus(Enum):
+    BLACK_TURN = 1
+    WHITE_TURN = -1
+    BLACK_WINS = 2
+    WHITE_WINS = -2
+    GAME_DRAW = 0
 
 
 class GameState():
@@ -27,7 +27,7 @@ class GameState():
             str_board[3][3], str_board[4][4] = WHITE, WHITE
             str_board[3][4], str_board[4][3] = BLACK, BLACK
             self._grid: GridType = str_board
-            self._status: GameStatus = GameStatus.BLACK
+            self._status: StateStatus = StateStatus.BLACK_TURN
         else:
             self._grid = copy.deepcopy(other._grid)
             self._status = copy.deepcopy(other._status)
@@ -42,7 +42,7 @@ class GameState():
         return self._grid
 
     @property
-    def status(self) -> GameStatus:
+    def status(self) -> StateStatus:
         return self._status
 
     # 复制GameState相关
@@ -60,7 +60,7 @@ class GameState():
     @property
     def running(self) -> bool:
         return (
-            self.status == GameStatus.BLACK or self.status == GameStatus.WHITE
+            self.status == StateStatus.BLACK_TURN or self.status == StateStatus.WHITE_TURN
         )
 
     @lazy_property
@@ -100,21 +100,21 @@ class GameState():
             return_str += ' '.join(row)
             return_str += '\n'
 
-        if self.status == GameStatus.BLACK:
+        if self.status == StateStatus.BLACK_TURN:
             return_str += 'Turn: Black'
-        elif self.status == GameStatus.WHITE:
+        elif self.status == StateStatus.WHITE_TURN:
             return_str += 'Turn: White'
-        elif self.status == GameStatus.BLACK_WIN:
+        elif self.status == StateStatus.BLACK_WINS:
             return_str += 'Black Wins!'
-        elif self.status == GameStatus.WHITE_WIN:
+        elif self.status == StateStatus.WHITE_WINS:
             return_str += 'White Wins!'
-        elif self.status == GameStatus.DRAW:
+        elif self.status == StateStatus.GAME_DRAW:
             return_str += 'Draw!'
 
         return return_str
 
     def draw_board(self) -> None:
-        color = BLACK if self.status == GameStatus.BLACK else WHITE
+        color = BLACK if self.status == StateStatus.BLACK_TURN else WHITE
         ui.draw_board(self.grid, color, self.legal_actions)
 
     # legal_actions、get_successor、翻转棋子算法相关
@@ -130,7 +130,7 @@ class GameState():
         """
         Get the placeable neighbours of board[x][y]
         """
-        color = BLACK if self.status == GameStatus.BLACK else WHITE
+        color = BLACK if self.status == StateStatus.BLACK_TURN else WHITE
 
         opponent_color = WHITE
         if color == WHITE:
@@ -231,7 +231,7 @@ class GameState():
         '''
         def get_successor_helper() -> 'GameState':
             successor = self.clone()
-            color = BLACK if self.status == GameStatus.BLACK else WHITE
+            color = BLACK if self.status == StateStatus.BLACK_TURN else WHITE
 
             if action is not None:
                 x, y = action
@@ -242,9 +242,9 @@ class GameState():
             # 不管 successor 的棋局是否已经结束，因为要获得 successor.legal_actions，
             # 所以必须暂时先给它赋一个 WHITE 或 BLACK 的值
             if color == BLACK:
-                successor._status = GameStatus.WHITE
+                successor._status = StateStatus.WHITE_TURN
             else:
-                successor._status = GameStatus.BLACK
+                successor._status = StateStatus.BLACK_TURN
 
             if len(successor.legal_actions) == 0:
                 grand_successor = successor.clone()
@@ -253,11 +253,11 @@ class GameState():
                     # 连续两个都没有 legal_actions，游戏已经结束
                     black_counts, white_counts = successor.black_white_counts
                     if black_counts > white_counts:
-                        successor._status = GameStatus.BLACK_WIN
+                        successor._status = StateStatus.BLACK_WINS
                     elif black_counts < white_counts:
-                        successor._status = GameStatus.WHITE_WIN
+                        successor._status = StateStatus.WHITE_WINS
                     else:
-                        successor._status = GameStatus.DRAW
+                        successor._status = StateStatus.GAME_DRAW
                     return successor
                 else:
                     successor.__successors_cache[None] = grand_successor
