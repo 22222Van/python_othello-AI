@@ -162,8 +162,8 @@ class MajorityOfRows(BaseHeuristic):
 # Performs the best when depth=3, agent=Minimaxagent
 class WeightedMajorityDifference(BaseHeuristic):
     """
-    if a row has weighted score of Black > weighted score of White, black_score+=|weighted score of Black - weighted score of White|
-    if a row has weighted score of Black < weighted score of White, white_score+=|weighted score of Black - weighted score of White|
+    if a row has weighted score of Black > weighted score of White, black_score += | weighted score of Black - weighted score of White |
+    if a row has weighted score of Black < weighted score of White, white_score += | weighted score of Black - weighted score of White |
     """
 
     def evaluate(self, game_state, color) -> float:
@@ -174,7 +174,10 @@ class WeightedMajorityDifference(BaseHeuristic):
             white_count = 0
             for j in range(BOARD_WIDTH):
                 if game_state.grid[i][j] == BLACK:
-                    if (i == 0 or i == BOARD_WIDTH-1) and (j == 0 or j == BOARD_WIDTH-1):
+                    if (
+                        (i == 0 or i == BOARD_WIDTH-1) and
+                        (j == 0 or j == BOARD_WIDTH-1)
+                    ):
                         black_count += 3
                     # elif (i, j) in star_positions:
                     #     pass
@@ -183,7 +186,6 @@ class WeightedMajorityDifference(BaseHeuristic):
                         right_surrounded = False
                         tmp = j
                         while tmp in range(BOARD_WIDTH):
-                            
                             if game_state.grid[i][tmp] == BLACK:
                                 pass
                             elif game_state.grid[i][tmp] == WHITE:
@@ -194,7 +196,6 @@ class WeightedMajorityDifference(BaseHeuristic):
                             tmp -= 1
                         tmp = j
                         while tmp in range(BOARD_WIDTH):
-                            
                             if game_state.grid[i][tmp] == BLACK:
                                 pass
                             elif game_state.grid[i][tmp] == WHITE:
@@ -210,7 +211,6 @@ class WeightedMajorityDifference(BaseHeuristic):
                         right_surrounded = False
                         tmp = i
                         while tmp in range(BOARD_WIDTH):
-                            
                             if game_state.grid[tmp][j] == BLACK:
                                 pass
                             elif game_state.grid[tmp][j] == WHITE:
@@ -221,7 +221,7 @@ class WeightedMajorityDifference(BaseHeuristic):
                             tmp -= 1
                         tmp = i
                         while tmp in range(BOARD_WIDTH):
-                            
+
                             if game_state.grid[tmp][j] == BLACK:
                                 pass
                             elif game_state.grid[tmp][j] == WHITE:
@@ -235,7 +235,10 @@ class WeightedMajorityDifference(BaseHeuristic):
                     else:
                         black_count += 1
                 if game_state.grid[i][j] == WHITE:
-                    if (i == 0 or i == BOARD_WIDTH-1) and (j == 0 or j == BOARD_WIDTH-1):
+                    if (
+                        (i == 0 or i == BOARD_WIDTH-1) and
+                        (j == 0 or j == BOARD_WIDTH-1)
+                    ):
                         white_count += 3
                     # elif (i, j) in star_positions:
                     #     pass
@@ -271,7 +274,6 @@ class WeightedMajorityDifference(BaseHeuristic):
                         right_surrounded = False
                         tmp = i
                         while tmp in range(BOARD_WIDTH):
-
                             if game_state.grid[tmp][j] == WHITE:
                                 pass
                             elif game_state.grid[tmp][j] == BLACK:
