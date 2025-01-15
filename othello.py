@@ -112,7 +112,7 @@ Add copyright information here.
             with Pool(processes=num_processors) as pool:
                 args_list = [
                     (agent1, agent2, graphics, debug, random.getrandbits(32))
-                    for i in range(total_games)
+                    for _ in range(total_games)
                 ]
                 with tqdm(total=total_games, desc="0-0-0") as pbar:
                     for result in pool.imap_unordered(play_game, args_list):
@@ -123,6 +123,9 @@ Add copyright information here.
                         pbar.set_description(
                             f"{black_wins}-{draw}-{white_wins}")
                         pbar.update(1)
+
+            total_duration = pbar.last_print_t - pbar.start_t
+            print(f"Execution time: {total_duration:.4f} s")
 
             black_wins = shared_results[StateStatus.BLACK_WINS]
             white_wins = shared_results[StateStatus.WHITE_WINS]
