@@ -5,7 +5,7 @@ from heuristics import BaseHeuristic
 from abc import ABC, abstractmethod
 from utils import *
 import ui
-
+from game_state import StateStatus
 import pickle
 
 
@@ -334,3 +334,54 @@ class ApproximateQAgent(BaseAgent):
         Called at the end of the game.
         """
         pass
+
+    def train(self, num_episodes: int, opponent: BaseAgent, save_interval: int = 100, save_path: str = 'weights.pkl'):
+        """
+        Trains the agent for a specified number of episodes.
+
+        Args:
+            num_episodes (int): The number of episodes to train.
+            opponent (BaseAgent): The opponent agent.
+            save_interval (int): The interval at which to save the weights.
+            save_path (str): The path to save the weights.
+        """
+        for episode in range(num_episodes):
+            game_state = GameState()
+            while game_state.running:
+                if game_state.status == StateStatus.BLACK_TURN:
+                    action = self.get_action(game_state)
+                else:
+                    action = opponent.get_action(game_state)
+                next_game_state = game_state.get_successor(action)
+                reward = self.get_reward(game_state, action, next_game_state)
+                self.update(game_state, action, next_game_state, reward)
+                game_state = next_game_state
+
+            if (episode + 1) % save_interval == 0:
+                self.save_weights(save_path)
+                print(f"Weights saved after episode {episode + 1}")
+
+    def get_reward(self, state, action, next_state):
+        """
+        Computes the reward for the given transition.
+
+        Args:
+            state (GameState): The current state.
+            action (PointType): The action taken.
+            next_state (GameState): The next state.
+
+        Returns:
+            float: The reward.
+        """
+        # Simple reward function: +1 for winning, -1 for losing, 0 otherwise
+        # Maybe this can be changed later
+        if next_state.status == StateStatus.BLACK_WINS and self.color == BLACK:
+            return 1.0
+        elif next_state.status == StateStatus.WHITE_WINS and self.color == WHITE:
+            return 1.0
+        elif next_state.status == StateStatus.BLACK_WINS and self.color == WHITE:
+            return -1.0
+        elif next_state.status == StateStatus.WHITE_WINS and self.color == BLACK:
+            return -1.0
+        else:
+            return 0.0
