@@ -103,6 +103,9 @@ Add copyright information here.
 
             pbar.set_description(f"{black_wins}-{draw}-{white_wins}")
 
+        total_duration = pbar.last_print_t - pbar.start_t
+        print(f"Execution time: {total_duration:.4f} s")
+
         print("Game Statistics:")
         print(f"   Black     Draw    White    Total")
         print(f"{black_wins:8} {draw:8} {white_wins:8} {total_games:8}")

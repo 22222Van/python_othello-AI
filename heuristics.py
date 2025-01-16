@@ -75,22 +75,22 @@ class WeightedCountPieces(BaseHeuristic):
         # 在原有每一个棋子得一分的基础上，
         # 棋子在角落额外得两分，棋子在边上额外得一分
         for i in range(BOARD_WIDTH):
-            if game_state.grid[0][i] == BLACK:
+            if game_state.grid[0, i] == BLACK:
                 black_score += 1
-            if game_state.grid[0][i] == WHITE:
+            if game_state.grid[0, i] == WHITE:
                 white_score += 1
-            if game_state.grid[BOARD_WIDTH-1][i] == BLACK:
+            if game_state.grid[BOARD_WIDTH-1, i] == BLACK:
                 black_score += 1
-            if game_state.grid[BOARD_WIDTH-1][i] == WHITE:
+            if game_state.grid[BOARD_WIDTH-1, i] == WHITE:
                 white_score += 1
 
-            if game_state.grid[i][0] == BLACK:
+            if game_state.grid[i, 0] == BLACK:
                 black_score += 1
-            if game_state.grid[i][0] == WHITE:
+            if game_state.grid[i, 0] == WHITE:
                 white_score += 1
-            if game_state.grid[i][BOARD_WIDTH-1] == BLACK:
+            if game_state.grid[i, BOARD_WIDTH-1] == BLACK:
                 black_score += 1
-            if game_state.grid[i][BOARD_WIDTH-1] == WHITE:
+            if game_state.grid[i, BOARD_WIDTH-1] == WHITE:
                 white_score += 1
 
         if color == BLACK:
@@ -110,22 +110,22 @@ class WeightedCountPieces(BaseHeuristic):
 #         #在原有每一个棋子得一分的基础上，
 #         #棋子在角落额外得两分，棋子在边上额外得一分
 #         for i in range(BOARD_WIDTH):
-#             if game_state.grid[0][i] == BLACK:
+#             if game_state.grid[0, i] == BLACK:
 #                 black_score += 1
-#             if game_state.grid[0][i] == WHITE:
+#             if game_state.grid[0, i] == WHITE:
 #                 white_score += 1
-#             if game_state.grid[BOARD_WIDTH-1][i] == BLACK:
+#             if game_state.grid[BOARD_WIDTH-1, i] == BLACK:
 #                 black_score += 1
-#             if game_state.grid[BOARD_WIDTH-1][i] == WHITE:
+#             if game_state.grid[BOARD_WIDTH-1, i] == WHITE:
 #                 white_score += 1
 
-#             if game_state.grid[i][0] == BLACK:
+#             if game_state.grid[i, 0] == BLACK:
 #                 black_score += 1
-#             if game_state.grid[i][0] == WHITE:
+#             if game_state.grid[i, 0] == WHITE:
 #                 white_score += 1
-#             if game_state.grid[i][BOARD_WIDTH-1] == BLACK:
+#             if game_state.grid[i, BOARD_WIDTH-1] == BLACK:
 #                 black_score += 1
-#             if game_state.grid[i][BOARD_WIDTH-1] == WHITE:
+#             if game_state.grid[i, BOARD_WIDTH-1] == WHITE:
 #                 white_score += 1
 
         # if color == BLACK:
@@ -147,9 +147,9 @@ class MajorityOfRows(BaseHeuristic):
             black_count = 0
             white_count = 0
             for j in range(BOARD_WIDTH):
-                if game_state.grid[i][j] == BLACK:
+                if game_state.grid[i, j] == BLACK:
                     black_count += 1
-                if game_state.grid[i][j] == WHITE:
+                if game_state.grid[i, j] == WHITE:
                     white_count += 1
             if white_count > black_count:
                 white_score += 1
@@ -173,7 +173,7 @@ class WeightedMajorityDifference(BaseHeuristic):
             black_count = 0
             white_count = 0
             for j in range(BOARD_WIDTH):
-                if game_state.grid[i][j] == BLACK:
+                if game_state.grid[i, j] == BLACK:
                     if (
                         (i == 0 or i == BOARD_WIDTH-1) and
                         (j == 0 or j == BOARD_WIDTH-1)
@@ -186,9 +186,9 @@ class WeightedMajorityDifference(BaseHeuristic):
                         right_surrounded = False
                         tmp = j
                         while tmp in range(BOARD_WIDTH):
-                            if game_state.grid[i][tmp] == BLACK:
+                            if game_state.grid[i, tmp] == BLACK:
                                 pass
-                            elif game_state.grid[i][tmp] == WHITE:
+                            elif game_state.grid[i, tmp] == WHITE:
                                 left_surrounded = True
                                 break
                             else:
@@ -196,9 +196,9 @@ class WeightedMajorityDifference(BaseHeuristic):
                             tmp -= 1
                         tmp = j
                         while tmp in range(BOARD_WIDTH):
-                            if game_state.grid[i][tmp] == BLACK:
+                            if game_state.grid[i, tmp] == BLACK:
                                 pass
-                            elif game_state.grid[i][tmp] == WHITE:
+                            elif game_state.grid[i, tmp] == WHITE:
                                 right_surrounded = True
                                 break
                             else:
@@ -211,9 +211,9 @@ class WeightedMajorityDifference(BaseHeuristic):
                         right_surrounded = False
                         tmp = i
                         while tmp in range(BOARD_WIDTH):
-                            if game_state.grid[tmp][j] == BLACK:
+                            if game_state.grid[tmp, j] == BLACK:
                                 pass
-                            elif game_state.grid[tmp][j] == WHITE:
+                            elif game_state.grid[tmp, j] == WHITE:
                                 left_surrounded = True
                                 break
                             else:
@@ -222,9 +222,9 @@ class WeightedMajorityDifference(BaseHeuristic):
                         tmp = i
                         while tmp in range(BOARD_WIDTH):
 
-                            if game_state.grid[tmp][j] == BLACK:
+                            if game_state.grid[tmp, j] == BLACK:
                                 pass
-                            elif game_state.grid[tmp][j] == WHITE:
+                            elif game_state.grid[tmp, j] == WHITE:
                                 right_surrounded = True
                                 break
                             else:
@@ -234,7 +234,7 @@ class WeightedMajorityDifference(BaseHeuristic):
                             black_count += 2
                     else:
                         black_count += 1
-                if game_state.grid[i][j] == WHITE:
+                if game_state.grid[i, j] == WHITE:
                     if (
                         (i == 0 or i == BOARD_WIDTH-1) and
                         (j == 0 or j == BOARD_WIDTH-1)
@@ -248,9 +248,9 @@ class WeightedMajorityDifference(BaseHeuristic):
                         tmp = j
                         while tmp in range(BOARD_WIDTH):
 
-                            if game_state.grid[i][tmp] == WHITE:
+                            if game_state.grid[i, tmp] == WHITE:
                                 pass
-                            elif game_state.grid[i][tmp] == BLACK:
+                            elif game_state.grid[i, tmp] == BLACK:
                                 left_surrounded = True
                                 break
                             else:
@@ -259,9 +259,9 @@ class WeightedMajorityDifference(BaseHeuristic):
                         tmp = j
                         while tmp in range(BOARD_WIDTH):
 
-                            if game_state.grid[i][tmp] == WHITE:
+                            if game_state.grid[i, tmp] == WHITE:
                                 pass
-                            elif game_state.grid[i][tmp] == BLACK:
+                            elif game_state.grid[i, tmp] == BLACK:
                                 right_surrounded = True
                                 break
                             else:
@@ -274,9 +274,9 @@ class WeightedMajorityDifference(BaseHeuristic):
                         right_surrounded = False
                         tmp = i
                         while tmp in range(BOARD_WIDTH):
-                            if game_state.grid[tmp][j] == WHITE:
+                            if game_state.grid[tmp, j] == WHITE:
                                 pass
-                            elif game_state.grid[tmp][j] == BLACK:
+                            elif game_state.grid[tmp, j] == BLACK:
                                 left_surrounded = True
                                 break
                             else:
@@ -285,9 +285,9 @@ class WeightedMajorityDifference(BaseHeuristic):
                         tmp = i
                         while tmp in range(BOARD_WIDTH):
 
-                            if game_state.grid[tmp][j] == WHITE:
+                            if game_state.grid[tmp, j] == WHITE:
                                 pass
-                            elif game_state.grid[tmp][j] == BLACK:
+                            elif game_state.grid[tmp, j] == BLACK:
                                 right_surrounded = True
                                 break
                             else:
