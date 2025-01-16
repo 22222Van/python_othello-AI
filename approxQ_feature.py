@@ -78,6 +78,9 @@ def n_stables(state: GameState, color: PlayerColorType) -> int:
     return n
 
 
+#
+# the main body function:
+#
 def get_features(state: GameState, action: PointType) -> Counter:
     """
     The features of a current "game_state"
@@ -124,7 +127,7 @@ def get_features(state: GameState, action: PointType) -> Counter:
     # kind of overlap with CORNER_NEIGHBOURS
     for a in opponent_legal_actions:
         if a in CORNERS:
-            features["corner_threat"] -= 2  # may adjust?
+            features["corner_threat"] = -2  # may adjust?
 
     # if the action is to put my chess on a position next to corner,
     # then that's bad, which would probably make me lose the corner!
