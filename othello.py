@@ -32,6 +32,16 @@ def get_agent_from_cli(cli_list: List[str], color: PlayerColorType) -> BaseAgent
             pass
         elif k == 'branch':
             v = int(v)
+        elif k == 'extractor':
+            pass
+        elif k == 'model_path':
+            pass
+        elif k == 'alpha':
+            v = float(v)
+        elif k == 'gamma':
+            v = float(v)
+        elif k == 'epsilon':
+            v = float(v)
         else:
             raise ValueError(f"Unknown arg {k}={v}.")
         kwargs[k] = v

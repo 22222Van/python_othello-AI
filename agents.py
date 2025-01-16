@@ -1,12 +1,14 @@
 import random
+import pickle
+
 from game_state import GameState
 from heuristics import BaseHeuristic
+from features import BaseExtractor
+from collections import defaultdict
 
 from abc import ABC, abstractmethod
 from utils import *
 import ui
-from game_state import StateStatus
-import pickle
 
 
 class BaseAgent(ABC):
@@ -245,143 +247,93 @@ class DeepLearningAgent(BaseAgent):
 
 
 class ApproximateQAgent(BaseAgent):
-    def __init__(self, color: PlayerColorType, extractor='IdentityExtractor', alpha=0.01, discount=0.9):
-        """
-        Initializes an ApproximateQAgent.
-
-        Args:
-            color (PlayerColorType): The color of the agent.
-            extractor (str): The name of the feature extractor to use.
-            alpha (float): The learning rate.
-            discount (float): The discount factor.
-        """
+    def __init__(
+        self,
+        color,
+        extractor: str = 'NaiveExtractor',
+        model_path: Optional[str] = None,
+        epsilon: float = 0.05,
+        alpha: float = 0.1,
+        gamma: float = 1.0
+    ):
         super().__init__(color)
-        self.featExtractor = globals()[extractor]()
-        self.weights = {}
         self.alpha = alpha
-        self.discount = discount
+        self.epsilon = epsilon
+        self.discount = gamma
 
-    def getWeights(self):
-        """
-        Returns the current weights of the agent.
-        """
-        return self.weights
+        self.training = False
 
-    def getQValue(self, state, action):
-        """
-        Returns the Q-value for the given state and action.
+        self.extractor = BaseExtractor.registry[extractor.lower()](color)
+        self.weights = defaultdict(float)
 
-        Args:
-            state (GameState): The current state of the game.
-            action (PointType): The action to take.
+        if model_path is not None:
+            self.load_model(model_path)
 
-        Returns:
-            float: The Q-value.
-        """
-        ans = 0
-        features = self.featExtractor.getFeatures(state, action)
-        for f in features:
-            ans += features[f] * self.weights.get(f, 0.0)
-        return ans
+    def save_model(self, path: PathObj):
+        print(self.weights)
+        with open(path, 'wb') as f:
+            pickle.dump(self.weights, f)
 
-    def save_weights(self, filepath: str) -> None:
-        """
-        Saves the agent's weights to a file using pickle.
+    def load_model(self, path: PathObj):
+        with open(path, 'rb') as f:
+            self.weights = pickle.load(f)
 
-        Args:
-            filepath (str): The path to the file where the weights will be saved.
-        """
-        with open(filepath, 'wb') as file:
-            pickle.dump(self.weights, file)
-        print(f"Weights saved to {filepath}")
+    def train(self):
+        self.training = True
 
-    def load_weights(self, filepath: str) -> None:
-        """
-        Loads the agent's weights from a file using pickle.
+    def eval(self):
+        self.training = False
 
-        Args:
-            filepath (str): The path to the file from which the weights will be loaded.
-        """
-        try:
-            with open(filepath, 'rb') as file:
-                self.weights = pickle.load(file)
-            print(f"Weights loaded from {filepath}")
-        except FileNotFoundError:
-            print(
-                f"No weights file found at {filepath}. Starting with empty weights.")
-        except Exception as e:
-            print(f"An error occurred while loading weights: {e}")
-
-    def update(self, state, action, nextState, reward: float):
-        """
-        Updates the weights based on the given experience.
-
-        Args:
-            state (GameState): The current state of the game.
-            action (PointType): The action taken.
-            nextState (GameState): The next state of the game.
-            reward (float): The reward received.
-        """
-        features = self.featExtractor.getFeatures(state, action)
-        difference = (reward + self.discount * (0 if len(nextState.legal_actions) == 0 else max(
-            self.getQValue(nextState, a)for a in nextState.legal_actions))) - self.getQValue(state, action)
-        for f in features:
-            self.weights[f] = self.weights.get(
-                f, 0.0) + self.alpha * difference * features[f]
-
-    def final(self, state):
-        """
-        Called at the end of the game.
-        """
-        pass
-
-    def train(self, num_episodes: int, opponent: BaseAgent, save_interval: int = 100, save_path: str = 'weights.pkl'):
-        """
-        Trains the agent for a specified number of episodes.
-
-        Args:
-            num_episodes (int): The number of episodes to train.
-            opponent (BaseAgent): The opponent agent.
-            save_interval (int): The interval at which to save the weights.
-            save_path (str): The path to save the weights.
-        """
-        for episode in range(num_episodes):
-            game_state = GameState()
-            while game_state.running:
-                if game_state.status == StateStatus.BLACK_TURN:
-                    action = self.get_action(game_state)
-                else:
-                    action = opponent.get_action(game_state)
-                next_game_state = game_state.get_successor(action)
-                reward = self.get_reward(game_state, action, next_game_state)
-                self.update(game_state, action, next_game_state, reward)
-                game_state = next_game_state
-
-            if (episode + 1) % save_interval == 0:
-                self.save_weights(save_path)
-                print(f"Weights saved after episode {episode + 1}")
-
-    def get_reward(self, state, action, next_state):
-        """
-        Computes the reward for the given transition.
-
-        Args:
-            state (GameState): The current state.
-            action (PointType): The action taken.
-            next_state (GameState): The next state.
-
-        Returns:
-            float: The reward.
-        """
-        # Simple reward function: +1 for winning, -1 for losing, 0 otherwise
-        # Maybe this can be changed later
-        if next_state.status == StateStatus.BLACK_WINS and self.color == BLACK:
-            return 1.0
-        elif next_state.status == StateStatus.WHITE_WINS and self.color == WHITE:
-            return 1.0
-        elif next_state.status == StateStatus.BLACK_WINS and self.color == WHITE:
-            return -1.0
-        elif next_state.status == StateStatus.WHITE_WINS and self.color == BLACK:
-            return -1.0
-        else:
+    def get_value(self, state: GameState):
+        legal_actions = state.legal_actions
+        if not legal_actions:
             return 0.0
+        max_q_value = -float('inf')
+        for action in legal_actions:
+            q_value = self.get_q_value(state, action)
+            if q_value > max_q_value:
+                max_q_value = q_value
+        return max_q_value
+
+    def get_q_value(self, state: GameState, action: PointType):
+        feats = self.extractor(state, action)
+        s = 0.0
+        for feat, value in feats.items():
+            s += self.weights[feat] * value
+        return s
+
+    def update(
+        self,
+        state: GameState,
+        action: PointType,
+        next_state: GameState,
+        reward: float
+    ):
+        feats = self.extractor(state, action)
+        diff = (
+            (reward + self.discount * self.get_value(next_state)) -
+            self.get_q_value(state, action)
+        )
+        for feat, value in feats.items():
+            self.weights[feat] = (
+                self.weights[feat] + self.alpha * diff * value
+            )
+
+    def get_action_from_q_values(self, state: GameState):
+        max_q_value = -INF
+        ret_actions = []
+        for action in state.legal_actions:
+            q_value = self.get_q_value(state, action)
+            if q_value > max_q_value:
+                max_q_value = q_value
+                ret_actions = [action]
+            if q_value == max_q_value:
+                ret_actions.append(action)
+        return random.choice(ret_actions)
+
+    def get_action(self, game_state: GameState):
+        legal_actions = game_state.legal_actions
+        if self.training and random.random() < self.epsilon:
+            return random.choice(legal_actions)
+        else:
+            return self.get_action_from_q_values(game_state)

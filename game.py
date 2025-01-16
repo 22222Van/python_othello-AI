@@ -1,4 +1,4 @@
-from agents import BaseAgent
+from agents import BaseAgent, ApproximateQAgent
 from game_state import GameState, StateStatus
 
 import ui
@@ -26,7 +26,16 @@ class Game():
         if use_graphic:
             ui.init_window()
 
-    def start(self) -> GameState:
+    def start(self, train=False) -> GameState:
+        black_train = False
+        white_train = False
+
+        if train:
+            if isinstance(self.black_agent, ApproximateQAgent):
+                black_train = True
+            if isinstance(self.white_agent, ApproximateQAgent):
+                white_train = True
+
         while self.game_state.running:
             if self.use_graphic:
                 self.game_state.draw_board()
@@ -48,7 +57,36 @@ class Game():
                 )
                 if self.debug:
                     print(action)
+
+                if train:  # 如果要训练RL，缓存当前的动作
+                    last_state = self.game_state
+
                 self.game_state = self.game_state.get_successor(action)
+
+                if train:  # 如果要训练RL，给reward
+                    status = self.game_state.status
+                    if status == StateStatus.BLACK_WINS:
+                        reward = BLACK
+                    elif status == StateStatus.WHITE_WINS:
+                        reward = WHITE
+                    else:
+                        reward = EMPTY
+
+                    if black_train:
+                        self.black_agent.update(
+                            last_state,  # type: ignore
+                            action,
+                            self.game_state,
+                            reward
+                        )
+                    if white_train:
+                        self.white_agent.update(
+                            last_state,  # type: ignore
+                            action,
+                            self.game_state,
+                            -reward
+                        )
+
             else:
                 # 空过的情况
                 if self.debug:
@@ -60,5 +98,6 @@ class Game():
 
         if self.debug:
             print(f'{self.game_state}')
+
 
         return self.game_state
