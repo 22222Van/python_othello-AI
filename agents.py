@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 from utils import *
 import ui
 
+import pickle
+
 
 class BaseAgent(ABC):
     """
@@ -282,6 +284,34 @@ class ApproximateQAgent(BaseAgent):
             ans += features[f] * self.weights.get(f, 0.0)
         return ans
 
+
+    def save_weights(self, filepath: str) -> None:
+        """
+        Saves the agent's weights to a file using pickle.
+
+        Args:
+            filepath (str): The path to the file where the weights will be saved.
+        """
+        with open(filepath, 'wb') as file:
+            pickle.dump(self.weights, file)
+        print(f"Weights saved to {filepath}")
+
+    def load_weights(self, filepath: str) -> None:
+        """
+        Loads the agent's weights from a file using pickle.
+
+        Args:
+            filepath (str): The path to the file from which the weights will be loaded.
+        """
+        try:
+            with open(filepath, 'rb') as file:
+                self.weights = pickle.load(file)
+            print(f"Weights loaded from {filepath}")
+        except FileNotFoundError:
+            print(f"No weights file found at {filepath}. Starting with empty weights.")
+        except Exception as e:
+            print(f"An error occurred while loading weights: {e}")
+
     def update(self, state, action, nextState, reward: float):
         """
         Updates the weights based on the given experience.
@@ -293,9 +323,7 @@ class ApproximateQAgent(BaseAgent):
             reward (float): The reward received.
         """
         features = self.featExtractor.getFeatures(state, action)
-        difference = (reward + self.discount * 
-                      (0 if len(nextState.legal_actions) == 0 else max(self.getQValue(nextState, a)for a in nextState.legal_actions)))
-        - self.getQValue(state, action)
+        difference = (reward + self.discount * (0 if len(nextState.legal_actions) == 0 else max(self.getQValue(nextState, a)for a in nextState.legal_actions)))- self.getQValue(state, action)
         for f in features:
             self.weights[f] = self.weights.get(f, 0.0) + self.alpha * difference * features[f]
 
