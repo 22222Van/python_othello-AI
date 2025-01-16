@@ -28,6 +28,7 @@ def visualize_defaultdict(file_path):
     plt.title(f"Heatmap, bias={bias:.2f}")
     plt.xlabel("y")
     plt.ylabel("x")
+    plt.savefig('./q-agent-naive-oppo-cnn.pdf')
     plt.show()
 
 
