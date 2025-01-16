@@ -5,19 +5,29 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from tqdm import tqdm
 import json
-from models import cnn_arch_1, cnn_arch_2, cnn_arch_3, cnn_arch_4, mlp, transformer
+from torch_models import (
+    cnn_arch_1,
+    cnn_arch_2,
+    cnn_arch_3,
+    cnn_arch_4,
+    mlp,
+    transformer
+)
+
 
 class OthelloDataset(Dataset):
     def __init__(self, board_states, actions, current_players):
         self.board_states = torch.tensor(board_states, dtype=torch.float32)
         self.actions = torch.tensor(actions, dtype=torch.long)
-        self.current_players = torch.tensor(current_players, dtype=torch.float32)
+        self.current_players = torch.tensor(
+            current_players, dtype=torch.float32)
 
     def __len__(self):
         return len(self.board_states)
 
     def __getitem__(self, idx):
         return self.board_states[idx], self.actions[idx], current_players[idx]
+
 
 if __name__ == '__main__':
 
@@ -60,7 +70,7 @@ if __name__ == '__main__':
             inputs = inputs.to(device)
             labels = labels.to(device)
             players = players.to(device)
-            
+
             outputs = model(inputs, players)
 
             outputs = outputs.view(-1, 8*8)
@@ -71,10 +81,11 @@ if __name__ == '__main__':
 
             loss.backward()
             optimizer.step()
-            
+
             # if i % 10 == 0:
             #     print(loss.item())
 
-        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss / len(dataloader)}")
+        print(
+            f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss / len(dataloader)}")
 
     torch.save(model.state_dict(), "cnn_arch_2.pth")
