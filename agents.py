@@ -242,7 +242,7 @@ class DeepLearningAgent(BaseAgent):
         legal_list = game_state.legal_actions
         action = self.predict(self.model, board, player, legal_list)
         return action
-    
+
 
 class ApproximateQAgent(BaseAgent):
     def __init__(self, color: PlayerColorType, extractor='IdentityExtractor', alpha=0.01, discount=0.9):
@@ -284,7 +284,6 @@ class ApproximateQAgent(BaseAgent):
             ans += features[f] * self.weights.get(f, 0.0)
         return ans
 
-
     def save_weights(self, filepath: str) -> None:
         """
         Saves the agent's weights to a file using pickle.
@@ -308,7 +307,8 @@ class ApproximateQAgent(BaseAgent):
                 self.weights = pickle.load(file)
             print(f"Weights loaded from {filepath}")
         except FileNotFoundError:
-            print(f"No weights file found at {filepath}. Starting with empty weights.")
+            print(
+                f"No weights file found at {filepath}. Starting with empty weights.")
         except Exception as e:
             print(f"An error occurred while loading weights: {e}")
 
@@ -323,13 +323,14 @@ class ApproximateQAgent(BaseAgent):
             reward (float): The reward received.
         """
         features = self.featExtractor.getFeatures(state, action)
-        difference = (reward + self.discount * (0 if len(nextState.legal_actions) == 0 else max(self.getQValue(nextState, a)for a in nextState.legal_actions)))- self.getQValue(state, action)
+        difference = (reward + self.discount * (0 if len(nextState.legal_actions) == 0 else max(
+            self.getQValue(nextState, a)for a in nextState.legal_actions))) - self.getQValue(state, action)
         for f in features:
-            self.weights[f] = self.weights.get(f, 0.0) + self.alpha * difference * features[f]
+            self.weights[f] = self.weights.get(
+                f, 0.0) + self.alpha * difference * features[f]
 
     def final(self, state):
         """
         Called at the end of the game.
         """
         pass
-
