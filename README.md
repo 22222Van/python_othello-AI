@@ -1,4 +1,4 @@
-# README
+# Othello for CS181 Project.
 
 ## List of external tools used
 
