@@ -240,3 +240,68 @@ class DeepLearningAgent(BaseAgent):
         legal_list = game_state.legal_actions
         action = self.predict(self.model, board, player, legal_list)
         return action
+    
+
+class ApproximateQAgent(BaseAgent):
+    def __init__(self, color: PlayerColorType, extractor='IdentityExtractor', alpha=0.01, discount=0.9):
+        """
+        Initializes an ApproximateQAgent.
+
+        Args:
+            color (PlayerColorType): The color of the agent.
+            extractor (str): The name of the feature extractor to use.
+            alpha (float): The learning rate.
+            discount (float): The discount factor.
+        """
+        super().__init__(color)
+        self.featExtractor = globals()[extractor]()
+        self.weights = {}
+        self.alpha = alpha
+        self.discount = discount
+
+    def getWeights(self):
+        """
+        Returns the current weights of the agent.
+        """
+        return self.weights
+
+    def getQValue(self, state, action):
+        """
+        Returns the Q-value for the given state and action.
+
+        Args:
+            state (GameState): The current state of the game.
+            action (PointType): The action to take.
+
+        Returns:
+            float: The Q-value.
+        """
+        ans = 0
+        features = self.featExtractor.getFeatures(state, action)
+        for f in features:
+            ans += features[f] * self.weights.get(f, 0.0)
+        return ans
+
+    def update(self, state, action, nextState, reward: float):
+        """
+        Updates the weights based on the given experience.
+
+        Args:
+            state (GameState): The current state of the game.
+            action (PointType): The action taken.
+            nextState (GameState): The next state of the game.
+            reward (float): The reward received.
+        """
+        features = self.featExtractor.getFeatures(state, action)
+        difference = (reward + self.discount * 
+                      (0 if len(nextState.legal_actions) == 0 else max(self.getQValue(nextState, a)for a in nextState.legal_actions)))
+        - self.getQValue(state, action)
+        for f in features:
+            self.weights[f] = self.weights.get(f, 0.0) + self.alpha * difference * features[f]
+
+    def final(self, state):
+        """
+        Called at the end of the game.
+        """
+        pass
+
