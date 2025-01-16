@@ -59,7 +59,12 @@ if __name__ == '__main__':
         description='''
 Othello for CS181 Project.
 
-Add copyright information here.
+Disclaimer: Although most of the code was written by ourselves (except
+`lazy_property` in `utils.py`), the design of our framework's API references the
+Pacman project from the CS181 course project comes from the University of
+California, Berkeley, and most of the variable names are interoperable.
+Additionally, some parts of the code were copied from the homework solutions we
+wrote for the aforementioned project.
 '''
     )
     parser.add_argument(

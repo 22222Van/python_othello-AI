@@ -1,7 +1,7 @@
 import os
 from typing import (
-    List, Dict, Tuple, Union, Literal, Optional, Type, TypeVar, Generic, Callable,
-    NoReturn, Any, overload, TYPE_CHECKING
+    List, Dict, Tuple, Union, Literal, Optional, Type, TypeVar, Generic,
+    Callable, NoReturn, Any, overload, TYPE_CHECKING
 )
 import numpy as np
 from numpy.typing import NDArray

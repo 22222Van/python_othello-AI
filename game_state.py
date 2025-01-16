@@ -34,8 +34,6 @@ class GameState():
         # deepcopy的时候不能拷贝cache！
         self.__successors_cache = {}
 
-    # @property起保护作用，能阻止对grid，status赋值的行为
-
     @property
     def grid(self) -> GridType:
         return self._grid
